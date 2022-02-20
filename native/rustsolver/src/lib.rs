@@ -189,7 +189,7 @@ mod tests {
                     "spill".to_string()
                 )
             ),
-            vec!(710, 4, 3, 2)
+            vec!(1625, 6, 3, 2)
         );
 
         assert_eq!(
@@ -203,7 +203,7 @@ mod tests {
                     "shale".to_string()
                 )
             ),
-            vec!(41, 12, 7, 3, 2)
+            vec!(96, 22, 14, 3, 2)
         );
 
         assert_eq!(
@@ -217,13 +217,13 @@ mod tests {
                     "shale".to_string()
                 )
             ),
-            vec!(41, 12, 7, 3, 2)
+            vec!(96, 22, 14, 3, 2)
         );
     }
 
     #[test]
     fn test_get_words() {
-        assert_eq!("aback", WORDS.first().unwrap());
+        assert_eq!("aahed", WORDS.first().unwrap());
     }
 
     #[test]
@@ -275,7 +275,7 @@ mod tests {
     fn test_remaining_wordles() {
         assert_eq!(
             remaining_wordles(Vec::from_iter("tread".chars()), &vec!(), &vec!()),
-            710
+            1625
         );
         assert_eq!(
             remaining_wordles(
@@ -283,7 +283,7 @@ mod tests {
                 &vec!(('s', 4)),
                 &vec!(('i', 2), ('l', 3))
             ),
-            4
+            6
         );
         assert_eq!(
             remaining_wordles(
@@ -291,7 +291,7 @@ mod tests {
                 &vec!(('s', 4)),
                 &vec!(('i', 2), ('l', 3), ('s', 0))
             ),
-            3
+            5
         );
     }
 
@@ -325,9 +325,9 @@ mod tests {
     #[test]
     fn cheats_lul() {
         let r = remaining_wordles_words(
-            Vec::from_iter("treadbo".chars()),
-            &vec![('s', 4)],
-            &vec![('i', 2), ('l', 3), ('s', 0)],
+            Vec::from_iter("redbols".chars()),
+            &vec![('a', 3), ('i', 2)],
+            &vec![('t', 0)],
         );
         println!("{:?}", r);
         println!("{:?}", r.len());
