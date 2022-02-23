@@ -1,60 +1,52 @@
-<main class="container mx-auto max-w-8xl px-4">
-
+<main class="container mx-auto max-w-8xl lg:px-5">
   <div class="p-5">
-    <h1 class="text-white text-center text-5xl subpixel-antialiased">Helple</h1>
-    <h2 class="text-white text-center text-2xl subpixel-antialiased">Wordle Companion</h2>
+    <h1 class="text-white text-center text-8xl subpixel-antialiased">Helple</h1>
+    <h2 class="text-white text-center text-6xl subpixel-antialiased">Wordle Companion</h2>
   </div>
   <div class="mx-auto grid grid-cols-1 lg:grid-cols-2">
-    <div class="p-2">
+    <div>
       <form phx-change="eval-guesses" phx-submit="get-words" phx-throttle="500">
-        <div class="pt-6 flex flex-row">
-          <div class="basis-1/6 self-center">
+        <div class="pt-6 flex">
+          <div class="w-3/4 self-center">
             <input
-              class="bg-zinc-600 text-white text-center rounded-md"
+              class="shadow-inner max-w-full text-6xl bg-zinc-600 text-white text-center rounded-md"
               type="text"
               name="solution_field"
               value={@solution}
               placeholder="Solution"
               maxlength="5"
-              size="5"
             />
           </div>
-          <div class="basis-4/6">
-            <p class="text-white text-center text-xl">Remaining</p>
-          </div>
-          <div class="basis-1/6">
-            <p class="text-white text-right text-xl">#</p>
+          <div class="basis-1/4">
+            <p class="text-white text-right text-6xl">#</p>
           </div>
         </div>
         <%= for n <- 0..5 do %>
           <div class="pt-6 flex flex-row">
-            <div class="basis-1/6 min-w-0">
+            <div class="w-3/4">
               <input
-                class="bg-zinc-600 text-center text-white rounded-md min-w-fit"
+                class="shadow-inner max-w-full bg-zinc-600 text-6xl text-center text-white rounded-md"
                 type="text"
                 name={n}
                 value={Enum.at(@guesses, n)}
                 placeholder={n}
                 maxlength="5"
-                size="5"
               />
             </div>
-            <div class="basis-4/6">
+            <div class="w-1/4">
               <%= if Enum.at(@guesses, n, "") != "" do %>
-                <p class="text-white text-center text-m"><%= Enum.at(@remaining_words, n, "") %></p>
-              <% end %>
-            </div>
-            <div class="basis-1/6">
-              <%= if Enum.at(@guesses, n, "") != "" do %>
-                <p class="text-white text-right text-xl"><%= Enum.at(@remaining, n) %></p>
+                <p class="text-white text-right text-6xl"><%= Enum.at(@remaining, n) %></p>
               <% end %>
             </div>
           </div>
         <% end %>
-        <div class="pt-6 flex flex-row justify-center">
-          <input class="bg-violet-200 border rounded-md text-black text-center"
+        <div class="pt-6 flex flex-row">
+          <input class="w-3/4 h-20 text-5xl font-bold shadow-md shadow-indigo-500/50 bg-indigo-500 rounded-md text-white text-center"
                 type="submit"
                 value="Reveal words">
+        </div>
+        <div class="pt-6 flex flex-row">
+          <p class="text-white text-5xl"><%= @remaining_words %></p>
         </div>
       </form>
     </div>

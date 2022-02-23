@@ -54,10 +54,6 @@ COPY priv priv
 # step down so that `lib` is available.
 COPY assets assets
 
-WORKDIR /app/assets
-run npm install tailwindcss postcss postcss-import autoprefixer --save-dev
-WORKDIR /app
-
 # Compile the release
 COPY lib lib
 

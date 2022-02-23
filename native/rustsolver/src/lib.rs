@@ -21,8 +21,8 @@ fn external_calc(solution: &str, guesses: Vec<String>) -> Vec<usize> {
 }
 
 #[rustler::nif]
-fn external_words(solution: &str, guesses: Vec<String>) -> Vec<Vec<String>> {
-    words(&WORDS, solution, guesses, 5)
+fn external_words(solution: &str, guesses: Vec<String>) -> Vec<String> {
+    last_words_mr_bond(&WORDS, solution, guesses, 5)
 }
 
 fn load(_env: rustler::Env, term: rustler::Term) -> bool {
@@ -200,6 +200,30 @@ pub fn words(
         );
     }
     out
+}
+
+pub fn last_words_mr_bond(
+    word_list: &Vec<String>,
+    solution: &str,
+    guesses: Vec<String>,
+    sample_size: usize,
+) -> Vec<String> {
+    let mut t: Truple = get_all(
+        &solution.to_lowercase(),
+        &guesses.first().unwrap().to_lowercase(),
+    );
+
+    for g in guesses.into_iter().skip(1) {
+        let mut other = get_all(&solution.to_lowercase(), &g.to_lowercase());
+        t.0.append(&mut other.0);
+        t.1.append(&mut other.1);
+        t.2.append(&mut other.2);
+    }
+    let mut rng = thread_rng();
+    remaining_wordles_words(word_list, t.0.clone(), &t.1, &t.2)
+        .choose_multiple(&mut rng, sample_size)
+        .cloned()
+        .collect()
 }
 
 pub fn calc(word_list: &Vec<String>, solution: &str, guesses: Vec<String>) -> Vec<usize> {

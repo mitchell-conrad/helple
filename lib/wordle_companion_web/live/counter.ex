@@ -44,7 +44,7 @@ defmodule WordleCompanionWeb.Counter do
         guesses
       ])
 
-    words = Enum.map(words, fn ws -> Enum.join(ws, " ") end)
+    words = Enum.join(words, " ")
 
     IO.inspect(%{time: time / 1000, vals: words})
 
