@@ -1,41 +1,91 @@
-<section class="phx-hero">
-  <h1>Welcome</h1>
-  <p>Peace of mind from prototype to production</p>
-</section>
+<main class="container mx-auto max-w-8xl px-4">
 
-<section class="row">
-  <article class="column">
-    <h2>Resources</h2>
-    <ul>
-      <li>
-        <a href="https://hexdocs.pm/phoenix/overview.html">Guides &amp; Docs</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix">Source</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix/blob/v1.6/CHANGELOG.md">v1.6 Changelog</a>
-      </li>
-    </ul>
-  </article>
-  <article class="column">
-    <h2>Help</h2>
-    <ul>
-      <li>
-        <a href="https://elixirforum.com/c/phoenix-forum">Forum</a>
-      </li>
-      <li>
-        <a href="https://web.libera.chat/#elixir">#elixir on Libera Chat (IRC)</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/elixirphoenix">Twitter @elixirphoenix</a>
-      </li>
-      <li>
-        <a href="https://elixir-slackin.herokuapp.com/">Elixir on Slack</a>
-      </li>
-      <li>
-        <a href="https://discord.gg/elixir">Elixir on Discord</a>
-      </li>
-    </ul>
-  </article>
-</section>
+  <div class="p-5">
+    <h1 class="text-white text-center text-5xl subpixel-antialiased">Helple</h1>
+    <h2 class="text-white text-center text-2xl subpixel-antialiased">Wordle Companion</h2>
+  </div>
+  <div class="mx-auto grid grid-cols-1 lg:grid-cols-2">
+    <div class="p-2">
+      <form phx-change="eval-guesses" phx-submit="get-words" phx-throttle="500">
+        <div class="pt-6 flex flex-row">
+          <div class="basis-1/6 self-center">
+            <input
+              class="bg-zinc-600 text-white text-center rounded-md"
+              type="text"
+              name="solution_field"
+              value={@solution}
+              placeholder="Solution"
+              maxlength="5"
+              size="5"
+            />
+          </div>
+          <div class="basis-4/6">
+            <p class="text-white text-center text-xl">Remaining</p>
+          </div>
+          <div class="basis-1/6">
+            <p class="text-white text-right text-xl">#</p>
+          </div>
+        </div>
+        <%= for n <- 0..5 do %>
+          <div class="pt-6 flex flex-row">
+            <div class="basis-1/6 min-w-0">
+              <input
+                class="bg-zinc-600 text-center text-white rounded-md min-w-fit"
+                type="text"
+                name={n}
+                value={Enum.at(@guesses, n)}
+                placeholder={n}
+                maxlength="5"
+                size="5"
+              />
+            </div>
+            <div class="basis-4/6">
+              <%= if Enum.at(@guesses, n, "") != "" do %>
+                <p class="text-white text-center text-m"><%= Enum.at(@remaining_words, n, "") %></p>
+              <% end %>
+            </div>
+            <div class="basis-1/6">
+              <%= if Enum.at(@guesses, n, "") != "" do %>
+                <p class="text-white text-right text-xl"><%= Enum.at(@remaining, n) %></p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+        <div class="pt-6 flex flex-row justify-center">
+          <input class="bg-violet-200 border rounded-md text-black text-center"
+                type="submit"
+                value="Reveal words">
+        </div>
+      </form>
+    </div>
+    <div class="p-4">
+      <h1 class="text-white">Guess distribution stats -- coming soon!</h1>
+      <!-- <form phx-change="eval-stats" phx-submit="eval-stats">
+        <div class="pt-6 flex flex-row">
+          <div class="basis-3/4">
+            <input
+              type="text"
+              name="solution_field"
+              value={@solution}
+              placeholder="Played"
+              maxlength="5"
+            />
+          </div>
+        </div>
+        <%= for n <- 0..5 do %>
+          <div class="pt-6 flex flex-row">
+            <div class="basis-3/4">
+              <input
+                type="text"
+                name={n}
+                value={Enum.at(@guesses, n)}
+                maxlength="5"
+                placeholder={Integer.to_string(n + 1)}
+              />
+            </div>
+          </div>
+        <% end %>
+      </form> -->
+    </div>
+  </div>
+</main>

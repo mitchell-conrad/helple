@@ -18,7 +18,7 @@ ARG RUNNER_IMAGE="debian:bullseye-20210902-slim"
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git curl \
+RUN apt-get update -y && apt-get install -y build-essential git curl npm \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 RUN curl curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -54,13 +54,17 @@ COPY priv priv
 # step down so that `lib` is available.
 COPY assets assets
 
-# compile assets
-RUN mix assets.deploy
+WORKDIR /app/assets
+run npm install tailwindcss postcss postcss-import autoprefixer --save-dev
+WORKDIR /app
 
 # Compile the release
 COPY lib lib
 
 COPY native native
+
+# compile assets
+RUN mix assets.deploy
 
 RUN mix compile
 

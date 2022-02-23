@@ -22,3 +22,7 @@ debug = true
 [[bench]]
 name = "bench_remaining"
 harness = false
+
+[dependencies.rand]
+version = "0.8.5"
+features = ["alloc"]

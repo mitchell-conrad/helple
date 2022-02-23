@@ -16,7 +16,8 @@ config :wordle_companion, WordleCompanionWeb.Endpoint,
   secret_key_base: "NcUd3w1RjXgafp2UOA5TNWDdfRXq6DIhe+73jv3/SR7RD2z3Lrdgg2f3d6OgQoUG",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -65,4 +66,4 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 config :wordle_companion, WordleCompanion.RustSolver,
-  load_data: "priv/static/assets/words.txt"
+  load_data: File.cwd!() <> "/priv/static/words.txt"
