@@ -1,5 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use rustsolver::{calc, last_words_mr_bond, remaining_wordles, WORDS};
+use rustsolver::solver::{calc, last_words_mr_bond, remaining_wordles};
+use rustsolver::WORDS;
 use std::iter::FromIterator;
 
 fn remaining_benchmark(c: &mut Criterion) {
