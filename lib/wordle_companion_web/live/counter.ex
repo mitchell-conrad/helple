@@ -1,11 +1,12 @@
 defmodule WordleCompanionWeb.Counter do
   use WordleCompanionWeb, :live_view
+  require Logger
 
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
        solution: "",
-       guesses: ["", "", "", "", "",""],
+       guesses: ["", "", "", "", "", ""],
        remaining: [0, 0, 0, 0, 0, 0],
        calc_time: 0,
        remaining_words: []
@@ -22,8 +23,7 @@ defmodule WordleCompanionWeb.Counter do
         guesses
       ])
 
-    IO.inspect(guesses)
-    IO.inspect(%{time: time / 1000, vals: nums})
+    Logger.info(%{operation: "eval-guesses", time: time / 1000, vals: nums, guesses: guesses})
 
     {:noreply,
      assign(socket, %{
@@ -46,7 +46,7 @@ defmodule WordleCompanionWeb.Counter do
 
     words = Enum.join(words, " ")
 
-    IO.inspect(%{time: time / 1000, vals: words})
+    Logger.info(%{operation: "get-words", time: time / 1000, vals: words})
 
     {:noreply,
      assign(socket, %{
