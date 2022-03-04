@@ -1,8 +1,30 @@
 # NIF for Elixir.RustSolver
 
-## To build the NIF module:
+## Dependencies
+* Nightly rust compiler
 
-- Your NIF will now build along with your project.
+## Development
+### Please lint and format before submitting a CR
+```bash
+cargo clippy
+cargo fmt
+```
+
+### Build
+```bash
+cargo build
+```
+
+### Test
+```bash
+cargo test
+```
+
+### Benchmark
+```bash
+cargo bench
+# Document any performance regressions in the CR
+```
 
 ## To load the NIF:
 
