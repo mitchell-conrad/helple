@@ -20,10 +20,7 @@ fn external_words(solution: &str, guesses: Vec<String>) -> Vec<String> {
     last_words_mr_bond(&WORDS, solution, guesses, 5)
 }
 
-fn load(_env: rustler::Env, term: rustler::Term) -> bool {
-    let s: String = term.decode().unwrap();
-    println!("PATH TO FILE: {}", s);
-    WORDS_PATH.lock().unwrap().extend(s.chars());
+fn load(_env: rustler::Env, _term: rustler::Term) -> bool {
     true
 }
 
@@ -42,7 +39,7 @@ type PosVec = Vec<(char, usize)>;
 type PosSlice<'a> = &'a [(char, usize)];
 
 fn get_words() -> Vec<String> {
-    include_str!("../../../priv/static/words.txt")
+    include_str!("resources/words.txt")
         .lines()
         .map(|line| line.to_string())
         .collect()
