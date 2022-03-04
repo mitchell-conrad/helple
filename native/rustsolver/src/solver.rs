@@ -201,8 +201,8 @@ pub fn calc(word_list: &[String], solution: &str, guesses: Vec<String>) -> Vec<u
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::WORDS;
+    use super::*;
 
     #[test]
     fn test_calc() {

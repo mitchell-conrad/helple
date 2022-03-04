@@ -27,11 +27,9 @@ rustler::init!(
     load = load
 );
 
-
 fn get_words() -> Vec<String> {
     include_str!("resources/words.txt")
         .lines()
         .map(|line| line.to_string())
         .collect()
 }
-
