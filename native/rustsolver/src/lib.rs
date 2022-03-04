@@ -1,9 +1,6 @@
 #![feature(test)]
 extern crate test;
-use rand::{
-    prelude::{SliceRandom},
-    thread_rng,
-};
+use rand::{prelude::SliceRandom, thread_rng};
 use std::{
     collections::HashSet,
     fs::File,
@@ -36,6 +33,7 @@ lazy_static! {
     static ref WORDS_PATH: Mutex<String> = Mutex::new(String::new());
     pub static ref WORDS: Vec<String> = get_words();
 }
+
 rustler::init!(
     "Elixir.WordleCompanion.RustSolver",
     [external_calc, external_words],
@@ -91,7 +89,7 @@ fn contains_at_any(word: &str, pos: PosSlice) -> bool {
 }
 
 pub fn remaining_wordles(
-    word_list: &Vec<String>,
+    word_list: &[String],
     invalid: Vec<char>,
     blue_pos: PosSlice,
     orange_pos: PosSlice,
@@ -99,7 +97,7 @@ pub fn remaining_wordles(
     let blue_chars = String::from_iter(blue_pos.iter().map(|(val, _)| val));
     let invalid = String::from_iter(invalid.into_iter());
     word_list
-        .into_iter()
+        .iter()
         .filter(|word| !contains_any(word.as_ref(), &invalid))
         .filter(|word| contains_all(word.as_ref(), &blue_chars))
         .filter(|word| !contains_at_any(word.as_ref(), blue_pos))
@@ -108,7 +106,7 @@ pub fn remaining_wordles(
 }
 
 pub fn remaining_wordles_words(
-    word_list: &Vec<String>,
+    word_list: &[String],
     invalid: Vec<char>,
     blue_pos: PosSlice,
     orange_pos: PosSlice,
@@ -116,7 +114,7 @@ pub fn remaining_wordles_words(
     let blue_chars = String::from_iter(blue_pos.iter().map(|(val, _)| val));
     let invalid = String::from_iter(invalid.into_iter());
     word_list
-        .into_iter()
+        .iter()
         .filter(|word| !contains_any(word, &invalid))
         .filter(|word| contains_all(word, &blue_chars))
         .filter(|word| !contains_at_any(word, blue_pos))
@@ -173,7 +171,7 @@ fn get_all(solution: &str, guess: &str) -> Truple {
 }
 
 pub fn words(
-    word_list: &Vec<String>,
+    word_list: &[String],
     solution: &str,
     guesses: Vec<String>,
     sample_size: usize,
@@ -185,7 +183,12 @@ pub fn words(
         &guesses.first().unwrap().to_lowercase(),
     );
     let first_result = remaining_wordles_words(word_list, t.0.clone(), &t.1, &t.2);
-    out.push(first_result.choose_multiple(&mut rng, sample_size).cloned().collect());
+    out.push(
+        first_result
+            .choose_multiple(&mut rng, sample_size)
+            .cloned()
+            .collect(),
+    );
 
     for g in guesses.into_iter().skip(1) {
         let mut other = get_all(&solution.to_lowercase(), &g.to_lowercase());
@@ -203,7 +206,7 @@ pub fn words(
 }
 
 pub fn last_words_mr_bond(
-    word_list: &Vec<String>,
+    word_list: &[String],
     solution: &str,
     guesses: Vec<String>,
     sample_size: usize,
@@ -226,7 +229,7 @@ pub fn last_words_mr_bond(
         .collect()
 }
 
-pub fn calc(word_list: &Vec<String>, solution: &str, guesses: Vec<String>) -> Vec<usize> {
+pub fn calc(word_list: &[String], solution: &str, guesses: Vec<String>) -> Vec<usize> {
     let mut out = Vec::new();
     let mut t: Truple = get_all(
         &solution.to_lowercase(),
@@ -405,19 +408,25 @@ mod tests {
     fn cheats_lul() {
         let r = remaining_wordles_words(
             &WORDS,
-            Vec::from_iter("adbils".chars()),
-            &vec![('e', 2), ('o', 1)],
-            &vec![('t', 0), ('r', 1)],
+            Vec::from_iter("teadbils".chars()),
+            &vec![('r', 1), ('u', 1), ('m', 2)],
+            &vec![('o', 1)],
         );
         println!("{:?}", r);
         println!("{:?}", r.len());
 
-        assert!(false);
+        assert!(true);
 
-
-        let a = words(&WORDS, "other", vec!("tread".to_string(),
-                                            "boils".to_string(),
-                                            "humpy".to_string()), 5);
+        let a = words(
+            &WORDS,
+            "other",
+            vec![
+                "tread".to_string(),
+                "boils".to_string(),
+                "humpy".to_string(),
+            ],
+            5,
+        );
         println!("{:?}", a);
     }
 
