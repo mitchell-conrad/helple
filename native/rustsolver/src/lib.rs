@@ -3,8 +3,6 @@ extern crate test;
 use rand::{prelude::SliceRandom, thread_rng};
 use std::{
     collections::HashSet,
-    fs::File,
-    io::{prelude::*, BufReader},
     iter::{zip, FromIterator},
     sync::Mutex,
 };
@@ -44,15 +42,9 @@ type PosVec = Vec<(char, usize)>;
 type PosSlice<'a> = &'a [(char, usize)];
 
 fn get_words() -> Vec<String> {
-    let mut path = WORDS_PATH.lock().unwrap().clone();
-    if path.is_empty() {
-        path = "/home/mitchell/words.txt".to_string();
-    }
-    println!("Trying to open file at {}", path);
-    let file = File::open(path).expect("Couldn't open file at path");
-    let buf = BufReader::new(file);
-    buf.lines()
-        .map(|l| l.expect("couldn't parse line"))
+    include_str!("../../../priv/static/words.txt")
+        .lines()
+        .map(|line| line.to_string())
         .collect()
 }
 
