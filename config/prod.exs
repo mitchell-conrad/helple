@@ -48,6 +48,3 @@ config :logger, level: :info
 #       force_ssl: [hsts: true]
 #
 # Check `Plug.SSL` for all available options in `force_ssl`.
-
-config :wordle_companion, WordleCompanion.RustSolver,
-  load_data: "/app/lib/wordle_companion-0.1.0/priv/static/words.txt"
