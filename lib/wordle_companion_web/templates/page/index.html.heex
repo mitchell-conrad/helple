@@ -5,6 +5,7 @@
   </div>
   <div class="mx-auto grid grid-cols-1 lg:grid-cols-2">
     <div>
+      <h2 class="text-white text-center text-5xl subpixel-antialiased">Remaining words</h2>
       <form phx-change="eval-guesses" phx-submit="get-words" phx-throttle="500">
         <div class="pt-6 flex">
           <div class="w-3/4 self-center">
@@ -50,34 +51,29 @@
         </div>
       </form>
     </div>
-    <div class="p-4">
-      <h1 class="text-white">Guess distribution stats -- coming soon!</h1>
-      <!-- <form phx-change="eval-stats" phx-submit="eval-stats">
-        <div class="pt-6 flex flex-row">
-          <div class="basis-3/4">
-            <input
-              type="text"
-              name="solution_field"
-              value={@solution}
-              placeholder="Played"
-              maxlength="5"
-            />
-          </div>
-        </div>
+    <div>
+      <h2 class="text-white text-center text-5xl subpixel-antialiased">Stats</h2>
+      <form phx-change="eval-stats" phx-submit="eval-stats">
         <%= for n <- 0..5 do %>
-          <div class="pt-6 flex flex-row">
-            <div class="basis-3/4">
+          <div class="pt-6 flex flex-row-reverse">
+            <div class="w-1/2">
               <input
+                class="shadow-inner max-w-full bg-zinc-600 text-6xl text-center text-white rounded-md"
                 type="text"
-                name={n}
-                value={Enum.at(@guesses, n)}
+                name={"h" <> Integer.to_string(n)}
+                value={Enum.at(@guess_histogram, n + 1)}
                 maxlength="5"
                 placeholder={Integer.to_string(n + 1)}
               />
             </div>
+            <div class="w-1/2 pr-5">
+              <p class="text-white text-right text-6xl"><%= n + 1 %></p>
+            </div>
           </div>
         <% end %>
-      </form> -->
+      </form>
+      <p class="text-white text-right text-6xl">μ: <%= @mean %></p>
+      <p class="text-white text-right text-6xl">σ: <%= @std_dev %></p>
     </div>
   </div>
 </main>
