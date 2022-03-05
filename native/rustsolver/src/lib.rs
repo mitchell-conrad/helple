@@ -1,4 +1,5 @@
 pub mod solver;
+pub mod stats;
 
 #[macro_use]
 extern crate lazy_static;
