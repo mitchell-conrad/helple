@@ -1,10 +1,23 @@
-<main class="container mx-auto max-w-8xl lg:px-5">
+<main class="container mx-auto max-w-4xl lg:px-5">
   <div class="p-5">
     <h1 class="text-white text-center text-8xl subpixel-antialiased">Helple</h1>
     <h2 class="text-white text-center text-6xl subpixel-antialiased">Wordle Companion</h2>
   </div>
-  <div class="mx-auto grid grid-cols-1 lg:grid-cols-2">
     <div>
+      <div class="pt-6 flex">
+        <button
+          type="button"
+          class="cursor-not-allowed w-1/2 h-20 text-4xl font-bold bg-indigo-500 rounded-md text-white text-center border-lime-500 border-4"
+          phx-click="mode-remaining">
+          Remaining Words
+        </button>
+        <button
+          type="button"
+          class="w-1/2 h-20 text-4xl font-bold bg-indigo-600 rounded-md text-white text-center"
+          phx-click="mode-stats">
+          Stats
+        </button>
+      </div>
       <form phx-change="eval-guesses" phx-submit="get-words" phx-throttle="500">
         <div class="pt-6 flex">
           <div class="w-3/4 self-center">
@@ -49,35 +62,5 @@
           <p class="text-white text-5xl"><%= @remaining_words %></p>
         </div>
       </form>
-    </div>
-    <div class="p-4">
-      <h1 class="text-white">Guess distribution stats -- coming soon!</h1>
-      <!-- <form phx-change="eval-stats" phx-submit="eval-stats">
-        <div class="pt-6 flex flex-row">
-          <div class="basis-3/4">
-            <input
-              type="text"
-              name="solution_field"
-              value={@solution}
-              placeholder="Played"
-              maxlength="5"
-            />
-          </div>
-        </div>
-        <%= for n <- 0..5 do %>
-          <div class="pt-6 flex flex-row">
-            <div class="basis-3/4">
-              <input
-                type="text"
-                name={n}
-                value={Enum.at(@guesses, n)}
-                maxlength="5"
-                placeholder={Integer.to_string(n + 1)}
-              />
-            </div>
-          </div>
-        <% end %>
-      </form> -->
-    </div>
   </div>
 </main>
