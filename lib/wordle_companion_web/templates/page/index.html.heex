@@ -1,11 +1,17 @@
-<main class="container mx-auto max-w-8xl lg:px-5">
+<main class="container mx-auto max-w-4xl lg:px-5">
   <div class="p-5">
     <h1 class="text-white text-center text-8xl subpixel-antialiased">Helple</h1>
     <h2 class="text-white text-center text-6xl subpixel-antialiased">Wordle Companion</h2>
   </div>
-  <div class="mx-auto grid grid-cols-1 lg:grid-cols-2">
     <div>
-      <h2 class="text-white text-center text-5xl subpixel-antialiased">Remaining words</h2>
+      <div class="pt-6 flex">
+        <button type="button" class="cursor-not-allowed w-1/2 h-20 text-4xl font-bold bg-indigo-500 rounded-md text-white text-center border-lime-500 border-4">
+          Remaining Words
+        </button>
+        <button type="button" class="w-1/2 h-20 text-4xl font-bold bg-indigo-600 rounded-md text-white text-center" onclick="window.location.href='/stats';">
+          Stats
+        </button>
+      </div>
       <form phx-change="eval-guesses" phx-submit="get-words" phx-throttle="500">
         <div class="pt-6 flex">
           <div class="w-3/4 self-center">
@@ -50,30 +56,5 @@
           <p class="text-white text-5xl"><%= @remaining_words %></p>
         </div>
       </form>
-    </div>
-    <div>
-      <h2 class="text-white text-center text-5xl subpixel-antialiased">Stats</h2>
-      <form phx-change="eval-stats" phx-submit="eval-stats">
-        <%= for n <- 0..5 do %>
-          <div class="pt-6 flex flex-row-reverse">
-            <div class="w-1/2">
-              <input
-                class="shadow-inner max-w-full bg-zinc-600 text-6xl text-center text-white rounded-md"
-                type="text"
-                name={"h" <> Integer.to_string(n)}
-                value={Enum.at(@guess_histogram, n + 1)}
-                maxlength="5"
-                placeholder={Integer.to_string(n + 1)}
-              />
-            </div>
-            <div class="w-1/2 pr-5">
-              <p class="text-white text-right text-6xl"><%= n + 1 %></p>
-            </div>
-          </div>
-        <% end %>
-      </form>
-      <p class="text-white text-right text-6xl">μ: <%= @mean %></p>
-      <p class="text-white text-right text-6xl">σ: <%= @std_dev %></p>
-    </div>
   </div>
 </main>
