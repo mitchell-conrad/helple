@@ -23,7 +23,12 @@ defmodule WordleCompanionWeb.Counter do
         guesses
       ])
 
-    Logger.info(%{operation: "eval-guesses", time: time / 1000, vals: nums, guesses: guesses})
+    Logger.info(
+      operation: "eval-guesses",
+      time: time / 1000,
+      vals: nums,
+      guesses: guesses
+    )
 
     {:noreply,
      assign(socket, %{
@@ -46,7 +51,11 @@ defmodule WordleCompanionWeb.Counter do
 
     words = Enum.join(words, " ")
 
-    Logger.info(%{operation: "get-words", time: time / 1000, vals: words})
+    Logger.info(
+      operation: "get-words",
+      time: time / 1000,
+      vals: words
+    )
 
     {:noreply,
      assign(socket, %{
