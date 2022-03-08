@@ -2,7 +2,7 @@ use rand::{prelude::SliceRandom, thread_rng};
 #[cfg(test)]
 use std::hash::Hash;
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     iter::{zip, FromIterator},
 };
 type PosVec = Vec<(char, usize)>;
@@ -97,31 +97,37 @@ fn get_orange(solution: &str, guess: &str) -> PosVec {
 }
 
 fn get_blue(solution: &str, guess: &str) -> PosVec {
-    let orange_indices: HashSet<usize> = get_orange(solution, guess)
+    let orange_idxs: HashSet<usize> = get_orange(solution, guess)
         .into_iter()
         .map(|(_, c)| c)
         .collect();
 
-    let mut blue_letters: HashSet<char> = HashSet::new();
-    let mut out = Vec::new();
-    for (idx, s) in solution.chars().enumerate() {
-        // We should ignore letters that are orange and letters that we've
-        // already determined are blue.
-        if !orange_indices.contains(&idx) && !blue_letters.contains(&s) {
-            // Find the index of the first non-orange instance of
-            // the current letter.
-            let first_blue_index = guess
-                .chars()
-                .enumerate()
-                .filter(|(idx, g)| &s == g && !orange_indices.contains(idx))
-                .map(|(i, _)| i)
-                .next();
+    let mut max_blues_by_letter: HashMap<char, u8> = HashMap::new();
+    // This should be the max number of each letter in the solution that we
+    // should reveal as blue.
+    for (idx, c) in solution.chars().enumerate() {
+        if !orange_idxs.contains(&idx) && guess.contains(c) {
+            *max_blues_by_letter.entry(c).or_insert(0) += 1;
+        }
+    }
 
-            if let Some(first_blue_index) = first_blue_index {
-                out.push((s, first_blue_index));
+    let mut out = Vec::new();
+    for c in max_blues_by_letter.clone().keys() {
+        // The letter c may exist more than once in the provided guess, so get
+        // the index for all instances of c which are in the wrong location.
+        let incorrect_idxs = guess
+            .chars()
+            .enumerate()
+            .filter(|(idx, g)| g == c && !orange_idxs.contains(idx))
+            .map(|(idx, _)| idx);
+
+        for idx in incorrect_idxs {
+            // Reveal up to the count of the non-correct instances of the given
+            // letter in the solution.
+            if max_blues_by_letter.get(c).unwrap_or(&0u8) > &0u8 {
+                *max_blues_by_letter.entry(*c).or_insert(0u8) -= 1;
+                out.push((*c, idx));
             }
-            // Visit the letter
-            blue_letters.insert(s);
         }
     }
     out
@@ -367,13 +373,17 @@ mod tests {
         // Only the first incorrect occurence will be returned as blue.
         // reading from left to right)
         assert_vecs_equal(get_blue("swill", "lolly"), vec![('l', 0)]);
-
+        // If there is more than 1 instance of a guess letter. whilst only there
+        // is only 1 location in the solution, reveal the letter as orange
+        // as precedence over blue.
         assert_vecs_equal(get_blue("dance", "nanas"), vec![]);
 
-        // If there are two instances of the same letter in a guess, but
-        // both are in an incorrect position, the first L2Rin a guess in a word
+        // If there are multiple instances of the same letter in a guess, and
+        // there is only a singular instance of that letter in the solution.
+        // Reveal the first (reading left to right) instance in the guess as blue.
         assert_vecs_equal(get_blue("swirl", "lolly"), vec![('l', 0)]);
         assert_vecs_equal(get_blue("hoard", "nanas"), vec![('a', 1)]);
+        assert_vecs_equal(get_blue("swill", "tease"), vec![('s', 3)]);
 
         assert_vecs_equal(get_blue("swill", "boils"), vec![('s', 4)]);
         assert_vecs_equal(
@@ -381,49 +391,34 @@ mod tests {
             vec![('a', 0), ('l', 1), ('u', 3)],
         );
 
-        assert_vecs_equal(get_blue("abbba", "babab"), vec![('b', 0), ('a', 1)]);
-
-        assert_vecs_equal(get_blue("ababa", "babab"), vec![('b', 0), ('a', 1)]);
+        assert_vecs_equal(
+            get_blue("abbba", "babab"),
+            vec![('b', 0), ('a', 1), ('a', 3), ('b', 4)],
+        );
+        assert_vecs_equal(
+            get_blue("ababa", "babab"),
+            vec![('b', 0), ('a', 1), ('b', 2), ('a', 3)],
+        );
     }
 
     #[test]
     fn test_double_letter_strangeness() {
         let word_list = vec![
-            "suite".to_string(),
-            "lunge".to_string(),
+            "peers".to_string(),
             "queue".to_string(),
-            "puree".to_string(),
             "rupee".to_string(),
         ];
 
         let guesses = words(
             &word_list,
             &"rupee".to_string(),
-            vec![
-                "suite".to_string(),
-                "lunge".to_string(),
-                "queue".to_string(),
-                "puree".to_string(),
-            ],
+            vec!["peers".to_string()],
             5,
         );
-        assert!(guesses.len() == 4);
-        assert_vecs_equal(
-            guesses.get(0).unwrap().clone(),
-            Vec::from_iter(word_list[1..5].iter().cloned()),
-        );
-        assert_vecs_equal(
-            guesses.get(1).unwrap().clone(),
-            Vec::from_iter(word_list[2..5].iter().cloned()),
-        );
-        assert_vecs_equal(
-            guesses.get(2).unwrap().clone(),
-            Vec::from_iter(word_list[3..5].iter().cloned()),
-        );
-        assert_vecs_equal(
-            guesses.get(3).unwrap().clone(),
-            Vec::from_iter(word_list[4..5].iter().cloned()),
-        );
+        assert!(guesses.len() == 1);
+        // The guess `peers` reveals that index 1,2 cannot be e.
+        // This rules out `queue` leaving just rupee
+        assert_vecs_equal(guesses.get(0).unwrap().clone(), vec!["rupee".to_string()]);
     }
 
     #[test]
