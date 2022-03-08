@@ -5,10 +5,16 @@
   </div>
   <div class="mx-auto grid grid-cols-1">
       <div class="pt-6 flex">
-        <button type="button" class="w-1/2 h-20 text-4xl font-bold bg-indigo-600 rounded-md text-white text-center" onclick="window.location.href='/';">
+        <button
+          type="button"
+          class="w-1/2 h-20 text-4xl font-bold bg-indigo-600 rounded-md text-white text-center"
+          phx-click="mode-remaining">
           Remaining Words
         </button>
-        <button type="button" class="cursor-not-allowed w-1/2 h-20 text-4xl font-bold bg-indigo-500 rounded-md text-white text-center border-lime-500 border-4">
+        <button
+          type="button"
+          class="cursor-not-allowed w-1/2 h-20 text-4xl font-bold bg-indigo-500 rounded-md text-white text-center border-lime-500 border-4"
+          phx-click="mode-stats">
           Stats
         </button>
       </div>
@@ -25,7 +31,7 @@
             <div class="w-1/2 justify-self-center">
               <input
                 class="shadow-inner max-w-full bg-zinc-600 text-6xl text-center text-white rounded-md"
-                type="text"
+                type="tel"
                 name="<%= "h" <> Integer.to_string(n) %>"
                 value="<%= Enum.at(@guess_histogram, n + 1) %>"
                 maxlength="5"
