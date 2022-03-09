@@ -1,0 +1,36 @@
+<div class="container mx-auto max-w-4xl lg:px-5">
+  <WordleCompanionWeb.UI.nav active="stats">
+  </WordleCompanionWeb.UI.nav>
+  <div class="mx-auto grid grid-cols-1">
+    <div>
+      <form phx-change="eval-stats" phx-submit="eval-stats">
+        <%= for n <- 0..5 do %>
+            <div class="pt-6 flex flex-row">
+              <!-- <div class="w-1/2">
+                   <p class="text-white text-center text-6xl subpixel-antialiased">
+                     <%= n + 1 %>
+
+                   </p>
+              </div> -->
+              <div class="w-1/2 justify-self-center">
+                <input
+                  class="shadow-inner max-w-full bg-zinc-600 text-6xl text-center text-white rounded-md"
+                  type="tel"
+                  name={"h" <> Integer.to_string(n) }
+                  value={ if Enum.at(@guess_histogram, n + 1) == "" do
+                               ''
+                             else
+                               Enum.at(@guess_histogram, n + 1)
+                             end }
+                  maxlength="5"
+                  placeholder={Integer.to_string(n + 1)}
+                  />
+              </div>
+            </div>
+            <% end %>
+      </form>
+      <p class="pt-6 text-white text-center text-6xl">μ: <%= @mean %></p>
+      <p class="text-white text-center text-6xl">σ: <%= @std_dev %></p>
+    </div>
+  </div>
+</div>

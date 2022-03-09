@@ -1,4 +1,4 @@
-<main role="main" >
+<main role="main">
   <p class="alert alert-info" role="alert"
     phx-click="lv:clear-flash"
     phx-value-key="info"><%= live_flash(@flash, :info) %></p>
@@ -7,5 +7,9 @@
     phx-click="lv:clear-flash"
     phx-value-key="error"><%= live_flash(@flash, :error) %></p>
 
+  <div class="p-5">
+    <h1 class="text-white text-center text-8xl subpixel-antialiased">Helple</h1>
+    <h2 class="text-white text-center text-6xl subpixel-antialiased">Wordle Companion</h2>
+  </div>
   <%= @inner_content %>
 </main>

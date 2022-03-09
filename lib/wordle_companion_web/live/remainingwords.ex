@@ -1,4 +1,4 @@
-defmodule WordleCompanionWeb.Counter do
+defmodule WordleCompanionWeb.RemainingWords do
   use WordleCompanionWeb, :live_view
   require Logger
 
@@ -115,7 +115,7 @@ defmodule WordleCompanionWeb.Counter do
 
   def render(assigns) do
     case assigns[:state] do
-      :remaining -> render(WordleCompanionWeb.PageView, "index.html", assigns)
+      :remaining -> render(WordleCompanionWeb.PageView, "remaining.html", assigns)
       :stats -> render(WordleCompanionWeb.PageView, "stats.html", assigns)
     end
   end
