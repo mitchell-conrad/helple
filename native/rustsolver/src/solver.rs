@@ -1,5 +1,6 @@
 use rand::{prelude::SliceRandom, thread_rng};
 use std::iter::{zip, FromIterator};
+
 type PosVec = Vec<(char, usize)>;
 type PosSlice<'a> = &'a [(char, usize)];
 
@@ -12,27 +13,21 @@ fn contains_all(word: &str, chars: &str) -> bool {
 }
 
 fn contains_at(word: &str, c: char, pos: usize) -> bool {
-    if let Some(val) = word.chars().nth(pos) {
-        return val == c;
+    match word.chars().nth(pos) {
+        Some(val) => val == c,
+        None => false,
     }
-    false
 }
 
 fn contains_at_all(word: &str, pos: PosSlice) -> bool {
-    let mut acc = true;
-
-    for (val, pos) in pos {
-        acc = acc && contains_at(word, *val, *pos);
-    }
-    acc
+    pos.iter()
+        .fold(true, |acc, (val, pos)| acc && contains_at(word, *val, *pos))
 }
 
 fn contains_at_any(word: &str, pos: PosSlice) -> bool {
-    let mut acc = false;
-    for (val, pos) in pos {
-        acc = acc || contains_at(word, *val, *pos);
-    }
-    acc
+    pos.iter().fold(false, |acc, (val, pos)| {
+        acc || contains_at(word, *val, *pos)
+    })
 }
 
 pub fn remaining_wordles(
@@ -45,10 +40,10 @@ pub fn remaining_wordles(
     let invalid = String::from_iter(invalid.into_iter());
     word_list
         .iter()
-        .filter(|word| !contains_any(word.as_ref(), &invalid))
-        .filter(|word| contains_all(word.as_ref(), &blue_chars))
-        .filter(|word| !contains_at_any(word.as_ref(), blue_pos))
-        .filter(|word| contains_at_all(word.as_ref(), orange_pos))
+        .filter(|word| !contains_any(word, &invalid))
+        .filter(|word| contains_all(word, &blue_chars))
+        .filter(|word| !contains_at_any(word, blue_pos))
+        .filter(|word| contains_at_all(word, orange_pos))
         .count()
 }
 
@@ -72,23 +67,15 @@ pub fn remaining_wordles_words(
 }
 
 fn get_grey(solution: &str, guess: &str) -> Vec<char> {
-    let mut out = Vec::new();
-    for val in guess.chars() {
-        if !solution.contains(val) {
-            out.push(val);
-        }
-    }
-    out
+    guess.chars().filter(|c| !solution.contains(*c)).collect()
 }
 
 fn get_orange(solution: &str, guess: &str) -> PosVec {
-    let mut out = Vec::new();
-    for (i, (s, g)) in zip(solution.chars(), guess.chars()).enumerate() {
-        if s == g {
-            out.push((s, i));
-        }
-    }
-    out
+    zip(solution.chars(), guess.chars())
+        .enumerate()
+        .filter(|(_, (solution_char, guess_char))| solution_char == guess_char)
+        .map(|(index, (solution_char, _))| (solution_char, index))
+        .collect()
 }
 
 fn get_blue(solution: &str, guess: &str) -> PosVec {
