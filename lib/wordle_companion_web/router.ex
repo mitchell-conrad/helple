@@ -17,8 +17,7 @@ defmodule WordleCompanionWeb.Router do
   scope "/", WordleCompanionWeb do
     pipe_through :browser
 
-    live "/", Counter
-    live "/stats", Stats
+    live "/", RemainingWords
   end
 
   # Other scopes may use custom stacks.

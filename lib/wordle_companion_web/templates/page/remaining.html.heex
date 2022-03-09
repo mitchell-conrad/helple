@@ -1,0 +1,48 @@
+<div class="container mx-auto max-w-4xl lg:px-5">
+  <WordleCompanionWeb.UI.nav active="remaining">
+  </WordleCompanionWeb.UI.nav>
+  <form phx-change="eval-guesses" phx-submit="get-words" phx-throttle="500">
+    <div class="pt-6 flex">
+      <div class="w-3/4 self-center">
+        <input
+          class="shadow-inner max-w-full text-6xl bg-zinc-600 text-white text-center rounded-md"
+          type="text"
+          name="solution_field"
+          value={@solution}
+          placeholder="Solution"
+          maxlength="5"
+          />
+      </div>
+      <div class="basis-1/4">
+        <p class="text-white text-right text-6xl">#</p>
+      </div>
+    </div>
+    <%= for n <- 0..5 do %>
+        <div class="pt-6 flex flex-row">
+          <div class="w-3/4">
+            <input
+              class="shadow-inner max-w-full bg-zinc-600 text-6xl text-center text-white rounded-md"
+              type="text"
+              name={n}
+              value={Enum.at(@guesses, n)}
+              placeholder={n}
+              maxlength="5"
+              />
+          </div>
+          <div class="w-1/4">
+            <%= if Enum.at(@guesses, n, "") != "" do %>
+            <p class="text-white text-right text-6xl"><%= Enum.at(@remaining, n) %></p>
+            <% end %>
+          </div>
+        </div>
+        <% end %>
+        <div class="pt-6 flex flex-row">
+          <input class="w-3/4 h-20 text-5xl font-bold shadow-md shadow-indigo-500/50 bg-indigo-500 rounded-md text-white text-center"
+                 type="submit"
+                 value="Reveal words">
+        </div>
+        <div class="pt-6 flex flex-row">
+          <p class="text-white text-5xl"><%= @remaining_words %></p>
+        </div>
+  </form>
+</div>
