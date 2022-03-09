@@ -1,8 +1,9 @@
 use rand::{prelude::SliceRandom, thread_rng};
 use std::iter::{zip, FromIterator};
 
-type PosVec = Vec<(char, usize)>;
-type PosSlice<'a> = &'a [(char, usize)];
+type PosTuple = (char, usize);
+type PosVec = Vec<PosTuple>;
+type PosSlice<'a> = &'a [PosTuple];
 
 fn contains_any(word: &str, chars: &str) -> bool {
     chars.chars().any(|c| word.contains(c))
@@ -21,13 +22,14 @@ fn contains_at(word: &str, c: char, pos: usize) -> bool {
 
 fn contains_at_all(word: &str, pos: PosSlice) -> bool {
     pos.iter()
-        .fold(true, |acc, (val, pos)| acc && contains_at(word, *val, *pos))
+        .map(|(val, pos)| contains_at(word, *val, *pos))
+        .all(|b| b)
 }
 
 fn contains_at_any(word: &str, pos: PosSlice) -> bool {
-    pos.iter().fold(false, |acc, (val, pos)| {
-        acc || contains_at(word, *val, *pos)
-    })
+    pos.iter()
+        .map(|(val, pos)| contains_at(word, *val, *pos))
+        .any(|b| b)
 }
 
 pub fn remaining_wordles(
@@ -73,7 +75,9 @@ fn get_grey(solution: &str, guess: &str) -> Vec<char> {
 fn get_orange(solution: &str, guess: &str) -> PosVec {
     zip(solution.chars(), guess.chars())
         .enumerate()
+        // Filter for chars that are in the same position in both guess and solution
         .filter(|(_, (solution_char, guess_char))| solution_char == guess_char)
+        // Map to pos tuple
         .map(|(index, (solution_char, _))| (solution_char, index))
         .collect()
 }
@@ -81,8 +85,13 @@ fn get_orange(solution: &str, guess: &str) -> PosVec {
 fn get_blue(solution: &str, guess: &str) -> PosVec {
     zip(solution.chars(), guess.chars())
         .enumerate()
-        .filter(|(_, (s, g))| s != g && solution.contains(*g))
-        .map(|(i, (_, g))| (g, i))
+        // Filter for chars that both solution and guess contain but aren't
+        //  in the same position
+        .filter(|(_, (solution_char, guess_char))| {
+            solution_char != guess_char && solution.contains(*guess_char)
+        })
+        // Map to PosTuple
+        .map(|(index, (_, guess_char))| (guess_char, index))
         .collect()
 }
 
