@@ -13,6 +13,7 @@ defmodule WordleCompanionWeb.RemainingWords do
        guess_histogram: ["", "", "", "", "", "", ""],
        mean: 0,
        std_dev: 0,
+       count: 0,
        state: :remaining
      )}
   end
@@ -103,12 +104,16 @@ defmodule WordleCompanionWeb.RemainingWords do
       WordleCompanion.RustSolver.external_std_dev(guess_histogram)
       |> Float.round(3)
 
-    Logger.info(mean: mean, std_dev: std_dev)
+    count =
+      WordleCompanion.RustSolver.external_count(guess_histogram)
+
+    Logger.info(mean: mean, std_dev: std_dev, count: count)
 
     {:noreply,
      assign(socket,
        mean: mean,
        std_dev: std_dev,
+       count: count,
        guess_histogram: guess_histogram
      )}
   end
