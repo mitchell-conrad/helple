@@ -24,6 +24,11 @@ fn external_mean(guess_histogram: Vec<usize>) -> f64 {
     stats::mean(&guess_histogram).unwrap_or(0f64)
 }
 
+#[rustler::nif]
+fn external_count(guess_histogram: Vec<usize>) -> usize {
+    stats::count(&guess_histogram)
+}
+
 fn load(_env: rustler::Env, _term: rustler::Term) -> bool {
     true
 }
@@ -34,7 +39,13 @@ lazy_static! {
 
 rustler::init!(
     "Elixir.WordleCompanion.RustSolver",
-    [external_calc, external_words, external_mean, external_std_dev],
+    [
+        external_calc,
+        external_words,
+        external_mean,
+        external_std_dev,
+        external_count
+    ],
     load = load
 );
 
