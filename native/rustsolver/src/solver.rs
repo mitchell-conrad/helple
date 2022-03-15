@@ -1,8 +1,5 @@
 use rand::{prelude::SliceRandom, thread_rng};
-use std::{
-    collections::HashSet,
-    iter::{zip, FromIterator},
-};
+use std::iter::{zip, FromIterator};
 type PosVec = Vec<(char, usize)>;
 type PosSlice<'a> = &'a [(char, usize)];
 
@@ -95,16 +92,10 @@ fn get_orange(solution: &str, guess: &str) -> PosVec {
 }
 
 fn get_blue(solution: &str, guess: &str) -> PosVec {
-    let orange_idxs: HashSet<usize> = get_orange(solution, guess)
-        .into_iter()
-        .map(|(_, c)| c)
-        .collect();
-
-    guess
-        .chars()
+    zip(solution.chars(), guess.chars())
         .enumerate()
-        .filter(|(idx, g)| !orange_idxs.contains(idx) && solution.contains(*g))
-        .map(|(idx, c)| (c, idx))
+        .filter(|(_, (s, g))| s != g && solution.contains(*g))
+        .map(|(i, (_, g))| (g, i))
         .collect()
 }
 
@@ -200,6 +191,7 @@ pub fn calc(word_list: &[String], solution: &str, guesses: Vec<String>) -> Vec<u
 mod tests {
     use super::super::WORDS;
     use super::*;
+    use std::collections::HashSet;
     use std::fmt::Debug;
     use std::hash::Hash;
 
