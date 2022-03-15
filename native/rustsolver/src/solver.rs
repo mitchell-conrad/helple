@@ -1,9 +1,8 @@
 use rand::{prelude::SliceRandom, thread_rng};
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     iter::{zip, FromIterator},
 };
-
 type PosVec = Vec<(char, usize)>;
 type PosSlice<'a> = &'a [(char, usize)];
 
@@ -64,6 +63,7 @@ pub fn remaining_wordles_words(
 ) -> Vec<String> {
     let blue_chars = String::from_iter(blue_pos.iter().map(|(val, _)| val));
     let invalid = String::from_iter(invalid.into_iter());
+
     word_list
         .iter()
         .filter(|word| !contains_any(word, &invalid))
@@ -95,18 +95,38 @@ fn get_orange(solution: &str, guess: &str) -> PosVec {
 }
 
 fn get_blue(solution: &str, guess: &str) -> PosVec {
-    let mut matches = Vec::new();
-    for (s, g) in zip(solution.chars(), guess.chars()) {
-        if solution.contains(g) && s != g {
-            matches.push(g);
+    let orange_idxs: HashSet<usize> = get_orange(solution, guess)
+        .into_iter()
+        .map(|(_, c)| c)
+        .collect();
+
+    let mut max_blues_by_letter: HashMap<char, u8> = HashMap::new();
+    // This should be the max number of each letter in the solution that we
+    // should reveal as blue.
+    for (idx, c) in solution.chars().enumerate() {
+        if !orange_idxs.contains(&idx) && guess.contains(c) {
+            *max_blues_by_letter.entry(c).or_insert(0) += 1;
         }
     }
-    let hs: HashSet<char> = HashSet::from_iter(matches.iter().cloned());
 
     let mut out = Vec::new();
-    for c in hs.iter() {
-        let idx = guess.chars().position(|v| *c == v).unwrap();
-        out.push((*c, idx));
+    for c in max_blues_by_letter.clone().keys() {
+        // The letter c may exist more than once in the provided guess, so get
+        // the index for all instances of c which are in the wrong location.
+        let incorrect_idxs = guess
+            .chars()
+            .enumerate()
+            .filter(|(idx, g)| g == c && !orange_idxs.contains(idx))
+            .map(|(idx, _)| idx);
+
+        for idx in incorrect_idxs {
+            // Reveal up to the count of the non-correct instances of the given
+            // letter in the solution.
+            if max_blues_by_letter.get(c).unwrap_or(&0u8) > &0u8 {
+                *max_blues_by_letter.entry(*c).or_insert(0u8) -= 1;
+                out.push((*c, idx));
+            }
+        }
     }
     out
 }
@@ -203,6 +223,7 @@ pub fn calc(word_list: &[String], solution: &str, guesses: Vec<String>) -> Vec<u
 mod tests {
     use super::super::WORDS;
     use super::*;
+    use std::hash::Hash;
 
     #[test]
     fn test_calc() {
@@ -340,18 +361,63 @@ mod tests {
 
     #[test]
     fn test_blue() {
-        assert!(compare_tuple_vecs(
-            get_blue("swill", "lolly"),
-            vec!(('l', 0))
-        ));
-        assert!(compare_tuple_vecs(
-            get_blue("swill", "boils"),
-            vec!(('s', 4))
-        ));
-        assert!(compare_tuple_vecs(
-            get_blue("caulk", "aloud"),
-            vec!(('a', 0), ('l', 1), ('u', 3))
-        ));
+        // If a letter is in a solution twice (in this case `a`). The letter
+        // which is in the correct location shall be ignored.
+        assert_slices_equal(
+            &get_blue("alarm", "drama"),
+            &vec![('r', 1), ('m', 3), ('a', 4)],
+        );
+
+        // If a letter appears in the solution twice (in this case `l`)
+        // Only the first incorrect occurence will be returned as blue.
+        // reading from left to right)
+        assert_slices_equal(&get_blue("swill", "lolly"), &vec![('l', 0)]);
+        // If there is more than 1 instance of a guess letter. whilst only there
+        // is only 1 location in the solution, reveal the letter as orange
+        // as precedence over blue.
+        assert_slices_equal(&get_blue("dance", "nanas"), &vec![]);
+
+        // If there are multiple instances of the same letter in a guess, and
+        // there is only a singular instance of that letter in the solution.
+        // Reveal the first (reading left to right) instance in the guess as blue.
+        assert_slices_equal(&get_blue("swirl", "lolly"), &vec![('l', 0)]);
+        assert_slices_equal(&get_blue("hoard", "nanas"), &vec![('a', 1)]);
+        assert_slices_equal(&get_blue("swill", "tease"), &vec![('s', 3)]);
+
+        assert_slices_equal(&get_blue("swill", "boils"), &vec![('s', 4)]);
+        assert_slices_equal(
+            &get_blue("caulk", "aloud"),
+            &vec![('a', 0), ('l', 1), ('u', 3)],
+        );
+
+        assert_slices_equal(
+            &get_blue("abbba", "babab"),
+            &vec![('b', 0), ('a', 1), ('a', 3), ('b', 4)],
+        );
+        assert_slices_equal(
+            &get_blue("ababa", "babab"),
+            &vec![('b', 0), ('a', 1), ('b', 2), ('a', 3)],
+        );
+    }
+
+    #[test]
+    fn test_double_letter_strangeness() {
+        let word_list = vec![
+            "peers".to_string(),
+            "queue".to_string(),
+            "rupee".to_string(),
+        ];
+
+        let guesses = words(
+            &word_list,
+            &"rupee".to_string(),
+            vec!["peers".to_string()],
+            5,
+        );
+        assert!(guesses.len() == 1);
+        // The guess `peers` reveals that index 1,2 cannot be e.
+        // This rules out `queue` leaving just rupee
+        assert_slices_equal(&guesses.get(0).unwrap(), &vec!["rupee".to_string()]);
     }
 
     #[test]
@@ -380,10 +446,15 @@ mod tests {
         println!("{:?}", a);
     }
 
-    fn compare_tuple_vecs(a: Vec<(char, usize)>, b: Vec<(char, usize)>) -> bool {
-        let a_set: HashSet<(char, usize)> = HashSet::from_iter(a.into_iter());
-        let b_set: HashSet<(char, usize)> = HashSet::from_iter(b.into_iter());
-
-        a_set == b_set
+    fn assert_slices_equal<T: Eq + Hash>(a: &[T], b: &[T]) {
+        let a_len = a.len();
+        let b_len = b.len();
+        if a_len != b_len {
+            assert!(false, "a and b have differing lengths")
+        } else {
+            let a_set: HashSet<&T> = HashSet::from_iter(a.into_iter());
+            let b_set: HashSet<&T> = HashSet::from_iter(b.into_iter());
+            assert!(a_set == b_set, "a and b have differing contents")
+        }
     }
 }
