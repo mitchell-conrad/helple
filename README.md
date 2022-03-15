@@ -13,5 +13,3 @@ To start dev server:
 ## Deployment
 `mix phx.gen.release`
 `fly deploy`
-
-
