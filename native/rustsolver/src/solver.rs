@@ -204,7 +204,7 @@ mod tests {
                     "spill".to_string()
                 )
             ),
-            vec!(1625, 6, 3, 2)
+            vec!(1624, 6, 3, 2)
         );
 
         assert_eq!(
@@ -292,7 +292,7 @@ mod tests {
     fn test_remaining_wordles() {
         assert_eq!(
             remaining_wordles(&WORDS, Vec::from_iter("tread".chars()), &vec!(), &vec!()),
-            1625
+            1624
         );
         assert_eq!(
             remaining_wordles(
