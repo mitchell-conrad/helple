@@ -11,4 +11,7 @@ To start dev server:
 * Visit locally served site at [`localhost:4000`](http://localhost:4000)
 
 ## Deployment
+`mix phx.gen.release`
 `fly deploy`
+
+
