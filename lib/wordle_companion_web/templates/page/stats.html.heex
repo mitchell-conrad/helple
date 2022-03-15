@@ -3,7 +3,7 @@
   </WordleCompanionWeb.UI.nav>
   <div class="mx-auto grid grid-cols-1">
     <div>
-      <form phx-change="eval-stats" phx-submit="eval-stats">
+      <form autocomplete="off" phx-change="eval-stats" phx-submit="eval-stats">
         <%= for n <- 0..5 do %>
             <div class="pt-6 flex flex-row">
               <!-- <div class="w-1/2">
