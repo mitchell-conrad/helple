@@ -46,28 +46,28 @@ RUN mkdir config
 COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
 
-COPY priv priv
-
 # note: if your project uses a tool like https://purgecss.com/,
 # which customizes asset compilation based on what it finds in
 # your Elixir templates, you will need to move the asset compilation
 # step down so that `lib` is available.
 COPY assets assets
 
-# Compile the release
+# Copy the code / resources
 COPY lib lib
-
+COPY priv priv
 COPY native native
 
-# compile assets
+# Create a release
+RUN mix phx.gen.release
 RUN mix assets.deploy
-
 RUN mix compile
+# Create a digest for the assets
+RUN mix phx.digest
 
 # Changes to config/runtime.exs don't require recompiling the code
-COPY config/runtime.exs config/
+COPY config/runtime.exs  config/
 
-COPY rel rel
+# Build the release
 RUN mix release
 
 # start a new build stage so that the final image will only contain

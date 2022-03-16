@@ -19,16 +19,14 @@ defmodule WordleCompanionWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :wordle_companion,
-    gzip: false,
+    gzip: true,
     only: [
       "assets",
       "fonts",
       "images",
+      "files",
       "favicon.ico",
-      "robots.txt",
-      "favicon-32x32.png",
-      "favicon-16x16.png",
-      "apple-touch-icon.png"
+      "robots.txt"
     ]
 
   # Code reloading can be explicitly enabled under the
