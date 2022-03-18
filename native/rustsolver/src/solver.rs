@@ -31,48 +31,55 @@ fn contains_at_any(word: &str, pos: PosSlice) -> bool {
         .map(|(val, pos)| contains_at(word, *val, *pos))
         .any(|b| b)
 }
-
 pub fn remaining_wordles(
     word_list: &[String],
-    invalid: Vec<char>,
-    blue_pos: PosSlice,
-    orange_pos: PosSlice,
+    invalid_chars: Vec<char>,
+    misplaced_positions: PosSlice,
+    correct_positions: PosSlice,
 ) -> usize {
-    let blue_chars = String::from_iter(blue_pos.iter().map(|(val, _)| val));
-    let invalid = String::from_iter(invalid.into_iter());
+    let misplaced_positions_chars =
+        String::from_iter(misplaced_positions.iter().map(|(val, _)| val));
+    let invalid_chars = String::from_iter(invalid_chars.into_iter());
+
     word_list
         .iter()
-        .filter(|word| !contains_any(word, &invalid))
-        .filter(|word| contains_all(word, &blue_chars))
-        .filter(|word| !contains_at_any(word, blue_pos))
-        .filter(|word| contains_at_all(word, orange_pos))
+        .filter(|word| !contains_any(word, &invalid_chars))
+        .filter(|word| contains_all(word, &misplaced_positions_chars))
+        .filter(|word| !contains_at_any(word, misplaced_positions))
+        .filter(|word| contains_at_all(word, correct_positions))
         .count()
 }
 
 pub fn remaining_wordles_words(
     word_list: &[String],
-    invalid: Vec<char>,
-    blue_pos: PosSlice,
-    orange_pos: PosSlice,
+    invalid_chars: Vec<char>,
+    misplaced_positions: PosSlice,
+    correct_positions: PosSlice,
 ) -> Vec<String> {
-    let blue_chars = String::from_iter(blue_pos.iter().map(|(val, _)| val));
-    let invalid = String::from_iter(invalid.into_iter());
+    let misplaced_positions_chars =
+        String::from_iter(misplaced_positions.iter().map(|(val, _)| val));
+    let invalid_chars = String::from_iter(invalid_chars.into_iter());
 
     word_list
         .iter()
-        .filter(|word| !contains_any(word, &invalid))
-        .filter(|word| contains_all(word, &blue_chars))
-        .filter(|word| !contains_at_any(word, blue_pos))
-        .filter(|word| contains_at_all(word, orange_pos))
-        .map(|s| s.to_string())
+        .filter(|word| !contains_any(word, &invalid_chars))
+        .filter(|word| contains_all(word, &misplaced_positions_chars))
+        .filter(|word| !contains_at_any(word, misplaced_positions))
+        .filter(|word| contains_at_all(word, correct_positions))
+        .map(|word| word.clone())
         .collect()
 }
 
-fn get_grey(solution: &str, guess: &str) -> Vec<char> {
+fn get_non_participating_chars(solution: &str, guess: &str) -> Vec<char> {
+    // For the provided solution and guess: Returns all the characters contained
+    // in guess which do not occur in solution.
     guess.chars().filter(|c| !solution.contains(*c)).collect()
 }
 
-fn get_orange(solution: &str, guess: &str) -> PosVec {
+fn get_correct_chars(solution: &str, guess: &str) -> PosVec {
+    // For the provided solution and guess: Returns all the instances where a
+    // character in the guess is in the correct position.
+
     zip(solution.chars(), guess.chars())
         .enumerate()
         // Filter for chars that are in the same position in both guess and solution
@@ -82,7 +89,11 @@ fn get_orange(solution: &str, guess: &str) -> PosVec {
         .collect()
 }
 
-fn get_blue(solution: &str, guess: &str) -> PosVec {
+fn get_misplaced_chars(solution: &str, guess: &str) -> PosVec {
+    // For the provided solution and guess: Returns all the instances where a
+    // character in the guess occurs in the solution, but is in the incorrect
+    // position.
+
     zip(solution.chars(), guess.chars())
         .enumerate()
         // Filter for chars that both solution and guess contain but aren't
@@ -99,9 +110,9 @@ type Truple = (Vec<char>, PosVec, PosVec);
 
 fn get_all(solution: &str, guess: &str) -> Truple {
     (
-        get_grey(solution, guess),
-        get_blue(solution, guess),
-        get_orange(solution, guess),
+        get_non_participating_chars(solution, guess),
+        get_misplaced_chars(solution, guess),
+        get_correct_chars(solution, guess),
     )
 }
 
@@ -315,54 +326,63 @@ mod tests {
     }
 
     #[test]
-    fn test_grey() {
-        assert_eq!(get_grey("asdf", "abcd"), vec!('b', 'c'));
+    fn test_get_non_participating_chars() {
+        assert_eq!(get_non_participating_chars("asdf", "abcd"), vec!('b', 'c'));
     }
 
     #[test]
-    fn test_orange() {
-        assert_eq!(get_orange("abcd", "abxy"), vec!(('a', 0), ('b', 1)));
-        assert_eq!(get_orange("zxym", "abxy"), vec!());
+    fn test_get_correct_chars() {
+        assert_eq!(get_correct_chars("abcd", "abxy"), vec!(('a', 0), ('b', 1)));
+        assert_eq!(get_correct_chars("zxym", "abxy"), vec!());
     }
 
     #[test]
-    fn test_blue() {
+    fn test_get_misplaced_chars() {
         assert_slices_equal(
-            &get_blue("alarm", "drama"),
+            &get_misplaced_chars("alarm", "drama"),
             &vec![('r', 1), ('m', 3), ('a', 4)],
         );
 
-        assert_slices_equal(&get_blue("smelt", "smell"), &vec![('l', 4)]);
+        assert_slices_equal(&get_misplaced_chars("smelt", "smell"), &vec![('l', 4)]);
 
-        assert_slices_equal(&get_blue("swill", "lolly"), &vec![('l', 0), ('l', 2)]);
+        assert_slices_equal(
+            &get_misplaced_chars("swill", "lolly"),
+            &vec![('l', 0), ('l', 2)],
+        );
 
-        assert_slices_equal(&get_blue("dance", "nanas"), &vec![('a', 3), ('n', 0)]);
+        assert_slices_equal(
+            &get_misplaced_chars("dance", "nanas"),
+            &vec![('a', 3), ('n', 0)],
+        );
 
         // If there are multiple instances of the same letter in a guess
-        // Reveal all the incorrect locations as blue.
+        // Reveal all the incorrect locations as misplaced.
         assert_slices_equal(
-            &get_blue("swirl", "lolly"),
+            &get_misplaced_chars("swirl", "lolly"),
             &vec![('l', 0), ('l', 2), ('l', 3)],
         );
 
-        assert_slices_equal(&get_blue("hoard", "nanas"), &vec![('a', 1), ('a', 3)]);
+        assert_slices_equal(
+            &get_misplaced_chars("hoard", "nanas"),
+            &vec![('a', 1), ('a', 3)],
+        );
 
-        assert_slices_equal(&get_blue("swill", "tease"), &vec![('s', 3)]);
+        assert_slices_equal(&get_misplaced_chars("swill", "tease"), &vec![('s', 3)]);
 
-        assert_slices_equal(&get_blue("swill", "boils"), &vec![('s', 4)]);
+        assert_slices_equal(&get_misplaced_chars("swill", "boils"), &vec![('s', 4)]);
 
         assert_slices_equal(
-            &get_blue("caulk", "aloud"),
+            &get_misplaced_chars("caulk", "aloud"),
             &vec![('a', 0), ('l', 1), ('u', 3)],
         );
 
         assert_slices_equal(
-            &get_blue("abbba", "babab"),
+            &get_misplaced_chars("abbba", "babab"),
             &vec![('b', 0), ('a', 1), ('a', 3), ('b', 4)],
         );
 
         assert_slices_equal(
-            &get_blue("ababa", "babab"),
+            &get_misplaced_chars("ababa", "babab"),
             &vec![('b', 0), ('a', 1), ('b', 2), ('a', 3), ('b', 4)],
         );
     }
