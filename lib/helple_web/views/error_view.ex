@@ -1,5 +1,5 @@
-defmodule WordleCompanionWeb.ErrorView do
-  use WordleCompanionWeb, :view
+defmodule HelpleWeb.ErrorView do
+  use HelpleWeb, :view
 
   # If you want to customize a particular status code
   # for a certain format, you may uncomment below.

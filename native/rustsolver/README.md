@@ -30,7 +30,7 @@ cargo bench
 
 ```elixir
 defmodule RustSolver do
-    use Rustler, otp_app: :wordle_companion, crate: "rustsolver"
+    use Rustler, otp_app: :helple, crate: "rustsolver"
 
     # When your NIF is loaded, it will override this function.
     def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
