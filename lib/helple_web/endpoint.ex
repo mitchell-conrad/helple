@@ -1,12 +1,12 @@
-defmodule WordleCompanionWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :wordle_companion
+defmodule HelpleWeb.Endpoint do
+  use Phoenix.Endpoint, otp_app: :helple
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_wordle_companion_key",
+    key: "_helple_key",
     signing_salt: "D4gmt/iX"
   ]
 
@@ -18,7 +18,7 @@ defmodule WordleCompanionWeb.Endpoint do
   # when deploying your static files in production.
   plug Plug.Static,
     at: "/",
-    from: :wordle_companion,
+    from: :helple,
     gzip: true,
     only: [
       "assets",
@@ -52,5 +52,5 @@ defmodule WordleCompanionWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug WordleCompanionWeb.Router
+  plug HelpleWeb.Router
 end

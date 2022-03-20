@@ -1,6 +1,6 @@
-defmodule WordleCompanion.RustSolver do
+defmodule Helple.RustSolver do
   use Rustler,
-    otp_app: :wordle_companion,
+    otp_app: :helple,
     crate: "rustsolver"
 
   def external_calc(_solution, _guesses), do: :erlang.nif_error(:nif_not_loaded)

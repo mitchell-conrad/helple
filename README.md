@@ -1,4 +1,4 @@
-# WordleCompanion
+# Helple
 
 ## Development
 Deps:

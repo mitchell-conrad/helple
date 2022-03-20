@@ -1,4 +1,4 @@
-defmodule WordleCompanion.Application do
+defmodule Helple.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -9,18 +9,18 @@ defmodule WordleCompanion.Application do
   def start(_type, _args) do
     children = [
       # Start the Telemetry supervisor
-      WordleCompanionWeb.Telemetry,
+      HelpleWeb.Telemetry,
       # Start the PubSub system
-      {Phoenix.PubSub, name: WordleCompanion.PubSub},
+      {Phoenix.PubSub, name: Helple.PubSub},
       # Start the Endpoint (http/https)
-      WordleCompanionWeb.Endpoint
-      # Start a worker by calling: WordleCompanion.Worker.start_link(arg)
-      # {WordleCompanion.Worker, arg}
+      HelpleWeb.Endpoint
+      # Start a worker by calling: Helple.Worker.start_link(arg)
+      # {Helple.Worker, arg}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: WordleCompanion.Supervisor]
+    opts = [strategy: :one_for_one, name: Helple.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
@@ -28,7 +28,7 @@ defmodule WordleCompanion.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    WordleCompanionWeb.Endpoint.config_change(changed, removed)
+    HelpleWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end

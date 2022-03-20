@@ -1,12 +1,12 @@
-defmodule WordleCompanionWeb do
+defmodule HelpleWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, views, channels and so on.
 
   This can be used in your application as:
 
-      use WordleCompanionWeb, :controller
-      use WordleCompanionWeb, :view
+      use HelpleWeb, :controller
+      use HelpleWeb, :view
 
   The definitions below will be executed for every view,
   controller, etc, so keep them short and clean, focused
@@ -19,18 +19,18 @@ defmodule WordleCompanionWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: WordleCompanionWeb
+      use Phoenix.Controller, namespace: HelpleWeb
 
       import Plug.Conn
-      alias WordleCompanionWeb.Router.Helpers, as: Routes
+      alias HelpleWeb.Router.Helpers, as: Routes
     end
   end
 
   def view do
     quote do
       use Phoenix.View,
-        root: "lib/wordle_companion_web/templates",
-        namespace: WordleCompanionWeb
+        root: "lib/helple_web/templates",
+        namespace: HelpleWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
@@ -44,7 +44,7 @@ defmodule WordleCompanionWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {WordleCompanionWeb.LayoutView, "live.html"}
+        layout: {HelpleWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())
     end
@@ -93,7 +93,7 @@ defmodule WordleCompanionWeb do
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
 
-      alias WordleCompanionWeb.Router.Helpers, as: Routes
+      alias HelpleWeb.Router.Helpers, as: Routes
     end
   end
 

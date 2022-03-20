@@ -20,7 +20,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-wordle_companion-*.tar
+helple-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/

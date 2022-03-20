@@ -1,4 +1,4 @@
-defmodule WordleCompanionWeb.UI do
+defmodule HelpleWeb.UI do
   use Phoenix.Component
 
   def nav(assigns) do

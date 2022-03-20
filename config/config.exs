@@ -8,10 +8,10 @@
 import Config
 
 # Configures the endpoint
-config :wordle_companion, WordleCompanionWeb.Endpoint,
+config :helple, HelpleWeb.Endpoint,
   url: [host: "localhost"],
-  render_errors: [view: WordleCompanionWeb.ErrorView, accepts: ~w(html json), layout: false],
-  pubsub_server: WordleCompanion.PubSub,
+  render_errors: [view: HelpleWeb.ErrorView, accepts: ~w(html json), layout: false],
+  pubsub_server: Helple.PubSub,
   live_view: [signing_salt: "RLzREA5s"]
 
 # Configure esbuild (the version is required)

@@ -1,5 +1,5 @@
-defmodule WordleCompanionWeb.RemainingWords do
-  use WordleCompanionWeb, :live_view
+defmodule HelpleWeb.RemainingWords do
+  use HelpleWeb, :live_view
   require Logger
 
   def mount(_params, _session, socket) do
@@ -31,7 +31,7 @@ defmodule WordleCompanionWeb.RemainingWords do
     solution = session["solution_field"]
 
     {time, nums} =
-      :timer.tc(&WordleCompanion.RustSolver.external_calc/2, [
+      :timer.tc(&Helple.RustSolver.external_calc/2, [
         solution,
         guesses
       ])
@@ -57,7 +57,7 @@ defmodule WordleCompanionWeb.RemainingWords do
     solution = session["solution_field"]
 
     {time, words} =
-      :timer.tc(&WordleCompanion.RustSolver.external_words/2, [
+      :timer.tc(&Helple.RustSolver.external_words/2, [
         solution,
         guesses
       ])
@@ -97,15 +97,15 @@ defmodule WordleCompanionWeb.RemainingWords do
     guess_histogram = [0 | guess_histogram]
 
     mean =
-      WordleCompanion.RustSolver.external_mean(guess_histogram)
+      Helple.RustSolver.external_mean(guess_histogram)
       |> Float.round(3)
 
     std_dev =
-      WordleCompanion.RustSolver.external_std_dev(guess_histogram)
+      Helple.RustSolver.external_std_dev(guess_histogram)
       |> Float.round(3)
 
     count =
-      WordleCompanion.RustSolver.external_count(guess_histogram)
+      Helple.RustSolver.external_count(guess_histogram)
 
     Logger.info(mean: mean, std_dev: std_dev, count: count)
 
@@ -120,8 +120,8 @@ defmodule WordleCompanionWeb.RemainingWords do
 
   def render(assigns) do
     case assigns[:state] do
-      :remaining -> render(WordleCompanionWeb.PageView, "remaining.html", assigns)
-      :stats -> render(WordleCompanionWeb.PageView, "stats.html", assigns)
+      :remaining -> render(HelpleWeb.PageView, "remaining.html", assigns)
+      :stats -> render(HelpleWeb.PageView, "stats.html", assigns)
     end
   end
 end

@@ -38,7 +38,7 @@ lazy_static! {
 }
 
 rustler::init!(
-    "Elixir.WordleCompanion.RustSolver",
+    "Elixir.Helple.RustSolver",
     [
         external_calc,
         external_words,

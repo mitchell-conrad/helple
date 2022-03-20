@@ -1,9 +1,9 @@
-defmodule WordleCompanion.MixProject do
+defmodule Helple.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :wordle_companion,
+      app: :helple,
       version: "0.1.0",
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -18,7 +18,7 @@ defmodule WordleCompanion.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {WordleCompanion.Application, []},
+      mod: {Helple.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
