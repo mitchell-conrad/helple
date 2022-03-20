@@ -12,4 +12,12 @@
     <h2 class="text-white text-center text-6xl subpixel-antialiased">Wordle Companion</h2>
   </div>
   <%= @inner_content %>
+  <footer>
+    <div class="mx-auto max-w-4xl lg:px-5 pt-5">
+      <a href={"https://github.com/mitchell-conrad/helple/commit/" <> Application.fetch_env!(:helple, :git_short_sha) }
+         class="text-zinc-700 text-left text-s subpixel-antialiased">
+        <%= Application.fetch_env!(:helple, :git_short_sha) %>
+      </a>
+    </div>
+  </footer>
 </main>

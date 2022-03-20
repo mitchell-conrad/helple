@@ -14,6 +14,9 @@ config :helple, HelpleWeb.Endpoint,
   pubsub_server: Helple.PubSub,
   live_view: [signing_salt: "RLzREA5s"]
 
+config :helple,
+  git_short_sha: System.get_env("GIT_SHORT_SHA", "dev-build")
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.14.0",

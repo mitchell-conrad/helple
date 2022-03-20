@@ -18,11 +18,11 @@ defmodule HelpleWeb.RemainingWords do
      )}
   end
 
-  def handle_event("mode-remaining", session, socket) do
+  def handle_event("mode-remaining", _session, socket) do
     {:noreply, assign(socket, state: :remaining)}
   end
 
-  def handle_event("mode-stats", session, socket) do
+  def handle_event("mode-stats", _session, socket) do
     {:noreply, assign(socket, state: :stats)}
   end
 
