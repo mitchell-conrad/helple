@@ -1,6 +1,5 @@
 defmodule HelpleWeb.RemainingWords do
   use HelpleWeb, :live_view
-  require Logger
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -8,7 +7,6 @@ defmodule HelpleWeb.RemainingWords do
        solution: "",
        guesses: ["", "", "", "", "", ""],
        remaining: [0, 0, 0, 0, 0, 0],
-       calc_time: 0,
        remaining_words: [],
        guess_histogram: ["", "", "", "", "", "", ""],
        mean: 0,
@@ -27,94 +25,40 @@ defmodule HelpleWeb.RemainingWords do
   end
 
   def handle_event("eval-guesses", session, socket) do
-    guesses = Enum.map(0..5, fn x -> session[Integer.to_string(x)] end)
-    solution = session["solution_field"]
-
-    {time, nums} =
-      :timer.tc(&Helple.RustSolver.external_calc/2, [
-        solution,
-        guesses
-      ])
-
-    Logger.info(
-      operation: "eval-guesses",
-      time: time / 1000,
-      vals: nums,
-      guesses: guesses
-    )
+    {solution, guesses} = parse_remaining_words_input(session)
 
     {:noreply,
      assign(socket,
        solution: solution,
        guesses: guesses,
-       remaining: nums,
-       calc_time: time
+       remaining: Helple.RustSolver.external_calc(solution, guesses)
      )}
   end
 
   def handle_event("get-words", session, socket) do
-    guesses = Enum.map(0..5, fn x -> session[Integer.to_string(x)] end)
-    solution = session["solution_field"]
-
-    {time, words} =
-      :timer.tc(&Helple.RustSolver.external_words/2, [
-        solution,
-        guesses
-      ])
-
-    words = Enum.join(words, " ")
-
-    Logger.info(
-      operation: "get-words",
-      time: time / 1000,
-      vals: words
-    )
-
-    {:noreply,
-     assign(socket, %{
-       solution: solution,
-       guesses: guesses,
-       calc_time: time,
-       remaining_words: words
-     })}
-  end
-
-  def handle_event("eval-stats", session, socket) do
-    guess_fields =
-      Enum.map(
-        0..5,
-        fn x -> session["h" <> Integer.to_string(x)] end
-      )
-
-    guess_histogram =
-      Enum.map(guess_fields, fn f ->
-        case Integer.parse(f) do
-          {v, _} -> v
-          :error -> 0
-        end
-      end)
-
-    guess_histogram = [0 | guess_histogram]
-
-    mean =
-      Helple.RustSolver.external_mean(guess_histogram)
-      |> Float.round(3)
-
-    std_dev =
-      Helple.RustSolver.external_std_dev(guess_histogram)
-      |> Float.round(3)
-
-    count =
-      Helple.RustSolver.external_count(guess_histogram)
-
-    Logger.info(mean: mean, std_dev: std_dev, count: count)
+    {solution, guesses} = parse_remaining_words_input(session)
 
     {:noreply,
      assign(socket,
-       mean: mean,
-       std_dev: std_dev,
-       count: count,
-       guess_histogram: guess_histogram
+       solution: solution,
+       guesses: guesses,
+       remaining_words:
+         Enum.join(
+           Helple.RustSolver.external_words(solution, guesses),
+           " "
+         )
+     )}
+  end
+
+  def handle_event("eval-stats", session, socket) do
+    guess_histogram = build_histogram(session)
+
+    {:noreply,
+     assign(socket,
+       guess_histogram: guess_histogram,
+       std_dev: calc_std_dev(guess_histogram),
+       count: calc_n(guess_histogram),
+       mean: calc_mean(guess_histogram)
      )}
   end
 
@@ -123,5 +67,46 @@ defmodule HelpleWeb.RemainingWords do
       :remaining -> render(HelpleWeb.PageView, "remaining.html", assigns)
       :stats -> render(HelpleWeb.PageView, "stats.html", assigns)
     end
+  end
+
+  defp parse_remaining_words_input(session) do
+    {
+      session["solution_field"],
+      Enum.map(0..5, &session[Integer.to_string(&1)])
+    }
+  end
+
+  defp build_histogram(session) do
+    # Extract histogram values from fields
+    histogram =
+      0..5
+      |> Enum.map(&session["h#{Integer.to_string(&1)}"])
+      |> Enum.map(fn f ->
+        case Integer.parse(f) do
+          {v, _} -> v
+          :error -> 0
+        end
+      end)
+
+    # Pad with a 0 out the front.
+    # Rust stats functions use indexes as histogram buckets
+    [0 | histogram]
+  end
+
+  defp calc_mean(histogram) do
+    histogram
+    |> Helple.RustSolver.external_mean()
+    |> Float.round(3)
+  end
+
+  defp calc_std_dev(histogram) do
+    histogram
+    |> Helple.RustSolver.external_std_dev()
+    |> Float.round(3)
+  end
+
+  defp calc_n(histogram) do
+    histogram
+    |> Helple.RustSolver.external_count()
   end
 end
