@@ -1,16 +1,39 @@
 use rand::{prelude::SliceRandom, thread_rng};
-use std::iter::{zip, FromIterator};
+use std::iter::zip;
+use std::ops::{Add, AddAssign};
 
 type PosTuple = (char, usize);
 type PosVec = Vec<PosTuple>;
 type PosSlice<'a> = &'a [PosTuple];
 
-fn contains_any(word: &str, chars: &str) -> bool {
-    chars.chars().any(|c| word.contains(c))
+struct GuessResult {
+    non_partipating: Vec<char>,
+    misplaced: PosVec,
+    correct: PosVec,
 }
 
-fn contains_all(word: &str, chars: &str) -> bool {
-    chars.chars().all(|c| word.contains(c))
+impl AddAssign for GuessResult {
+    fn add_assign(&mut self, other: Self) {
+        self.non_partipating.extend(other.non_partipating);
+        self.misplaced.extend(other.misplaced);
+        self.correct.extend(other.correct);
+    }
+}
+impl Add for GuessResult {
+    type Output = GuessResult;
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut guess = self;
+        guess += rhs;
+        guess
+    }
+}
+
+fn contains_any(word: &str, chars: &[char]) -> bool {
+    chars.iter().any(|c| word.contains(*c))
+}
+
+fn contains_all(word: &str, chars: &[char]) -> bool {
+    chars.iter().all(|c| word.contains(*c))
 }
 
 fn contains_at(word: &str, c: char, pos: usize) -> bool {
@@ -31,41 +54,16 @@ fn contains_at_any(word: &str, pos: PosSlice) -> bool {
         .map(|(val, pos)| contains_at(word, *val, *pos))
         .any(|b| b)
 }
-pub fn remaining_wordles(
-    word_list: &[String],
-    invalid_chars: Vec<char>,
-    misplaced_positions: PosSlice,
-    correct_positions: PosSlice,
-) -> usize {
-    let misplaced_positions_chars =
-        String::from_iter(misplaced_positions.iter().map(|(val, _)| val));
-    let invalid_chars = String::from_iter(invalid_chars.into_iter());
+
+fn remaining_wordles_words(word_list: &[String], t: &GuessResult) -> Vec<String> {
+    let misplaced_positions_chars: Vec<char> = t.misplaced.iter().map(|(val, _)| *val).collect();
 
     word_list
         .iter()
-        .filter(|word| !contains_any(word, &invalid_chars))
+        .filter(|word| !contains_any(word, &t.non_partipating))
         .filter(|word| contains_all(word, &misplaced_positions_chars))
-        .filter(|word| !contains_at_any(word, misplaced_positions))
-        .filter(|word| contains_at_all(word, correct_positions))
-        .count()
-}
-
-pub fn remaining_wordles_words(
-    word_list: &[String],
-    invalid_chars: Vec<char>,
-    misplaced_positions: PosSlice,
-    correct_positions: PosSlice,
-) -> Vec<String> {
-    let misplaced_positions_chars =
-        String::from_iter(misplaced_positions.iter().map(|(val, _)| val));
-    let invalid_chars = String::from_iter(invalid_chars.into_iter());
-
-    word_list
-        .iter()
-        .filter(|word| !contains_any(word, &invalid_chars))
-        .filter(|word| contains_all(word, &misplaced_positions_chars))
-        .filter(|word| !contains_at_any(word, misplaced_positions))
-        .filter(|word| contains_at_all(word, correct_positions))
+        .filter(|word| !contains_at_any(word, &t.misplaced))
+        .filter(|word| contains_at_all(word, &t.correct))
         .cloned()
         .collect()
 }
@@ -106,49 +104,12 @@ fn get_misplaced_chars(solution: &str, guess: &str) -> PosVec {
         .collect()
 }
 
-type Truple = (Vec<char>, PosVec, PosVec);
-
-fn get_all(solution: &str, guess: &str) -> Truple {
-    (
-        get_non_participating_chars(solution, guess),
-        get_misplaced_chars(solution, guess),
-        get_correct_chars(solution, guess),
-    )
-}
-
-pub fn words(
-    word_list: &[String],
-    solution: &str,
-    guesses: Vec<String>,
-    sample_size: usize,
-) -> Vec<Vec<String>> {
-    let mut out = Vec::new();
-    let mut rng = thread_rng();
-    let mut t: Truple = get_all(
-        &solution.to_lowercase(),
-        &guesses.first().unwrap().to_lowercase(),
-    );
-    let first_result = remaining_wordles_words(word_list, t.0.clone(), &t.1, &t.2);
-    out.push(
-        first_result
-            .choose_multiple(&mut rng, sample_size)
-            .cloned()
-            .collect(),
-    );
-
-    for g in guesses.into_iter().skip(1) {
-        let mut other = get_all(&solution.to_lowercase(), &g.to_lowercase());
-        t.0.append(&mut other.0);
-        t.1.append(&mut other.1);
-        t.2.append(&mut other.2);
-        out.push(
-            remaining_wordles_words(word_list, t.0.clone(), &t.1, &t.2)
-                .choose_multiple(&mut rng, sample_size)
-                .cloned()
-                .collect(),
-        );
+fn get_all(solution: &str, guess: &str) -> GuessResult {
+    GuessResult {
+        non_partipating: get_non_participating_chars(solution, guess),
+        misplaced: get_misplaced_chars(solution, guess),
+        correct: get_correct_chars(solution, guess),
     }
-    out
 }
 
 pub fn last_words_mr_bond(
@@ -157,41 +118,38 @@ pub fn last_words_mr_bond(
     guesses: Vec<String>,
     sample_size: usize,
 ) -> Vec<String> {
-    let mut t: Truple = get_all(
-        &solution.to_lowercase(),
-        &guesses.first().unwrap().to_lowercase(),
-    );
+    // Flatten the GuessResults into a singular GuessResult.
+    let guess_result: GuessResult = guesses
+        .into_iter()
+        .map(|guess| get_all(&solution.to_lowercase(), &guess.to_lowercase()))
+        .fold(
+            GuessResult {
+                non_partipating: vec![],
+                misplaced: vec![],
+                correct: vec![],
+            },
+            |a, b| a + b,
+        );
 
-    for g in guesses.into_iter().skip(1) {
-        let mut other = get_all(&solution.to_lowercase(), &g.to_lowercase());
-        t.0.append(&mut other.0);
-        t.1.append(&mut other.1);
-        t.2.append(&mut other.2);
-    }
-    let mut rng = thread_rng();
-    remaining_wordles_words(word_list, t.0.clone(), &t.1, &t.2)
-        .choose_multiple(&mut rng, sample_size)
+    remaining_wordles_words(word_list, &guess_result)
+        .choose_multiple(&mut thread_rng(), sample_size)
         .cloned()
         .collect()
 }
 
 pub fn calc(word_list: &[String], solution: &str, guesses: Vec<String>) -> Vec<usize> {
-    let mut out = Vec::new();
-    let mut t: Truple = get_all(
-        &solution.to_lowercase(),
-        &guesses.first().unwrap().to_lowercase(),
-    );
-    let first_result = remaining_wordles(word_list, t.0.clone(), &t.1, &t.2);
-    out.push(first_result);
+    // Take a copy of the words list
+    let mut word_list: Vec<String> = word_list.to_vec();
 
-    for g in guesses.into_iter().skip(1) {
-        let mut other = get_all(&solution.to_lowercase(), &g.to_lowercase());
-        t.0.append(&mut other.0);
-        t.1.append(&mut other.1);
-        t.2.append(&mut other.2);
-        out.push(remaining_wordles(word_list, t.0.clone(), &t.1, &t.2));
-    }
-    out
+    guesses
+        .into_iter()
+        .map(|guess| get_all(&solution.to_lowercase(), &guess.to_lowercase()))
+        .map(|guess_result| {
+            // Each guess enables us to prune down word_list.
+            word_list = remaining_wordles_words(word_list.as_slice(), &guess_result);
+            word_list.len()
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -201,6 +159,7 @@ mod tests {
     use std::collections::HashSet;
     use std::fmt::Debug;
     use std::hash::Hash;
+    use std::iter::FromIterator;
 
     #[test]
     fn test_calc() {
@@ -256,14 +215,14 @@ mod tests {
 
     #[test]
     fn test_contains_any() {
-        assert!(!contains_any("eeuib", "asdf"));
-        assert!(contains_any("eeaib", "asdf"));
+        assert!(!contains_any("eeuib", &str2vec("asdf")));
+        assert!(contains_any("eeaib", &str2vec("asdf")));
     }
 
     #[test]
     fn test_contains_all() {
-        assert!(contains_all("asdf", "ad"));
-        assert!(!contains_all("asdf", "az"));
+        assert!(contains_all("asdf", &str2vec("ad")));
+        assert!(!contains_all("asdf", &str2vec("az")));
     }
 
     #[test]
@@ -302,25 +261,39 @@ mod tests {
     #[test]
     fn test_remaining_wordles() {
         assert_eq!(
-            remaining_wordles(&WORDS, Vec::from_iter("tread".chars()), &vec!(), &vec!()),
+            remaining_wordles_words(
+                &WORDS,
+                &GuessResult {
+                    non_partipating: str2vec("tread"),
+                    misplaced: vec!(),
+                    correct: vec!()
+                }
+            )
+            .len(),
             1624
         );
         assert_eq!(
-            remaining_wordles(
+            remaining_wordles_words(
                 &WORDS,
-                Vec::from_iter("treadbo".chars()),
-                &vec!(('s', 4)),
-                &vec!(('i', 2), ('l', 3))
-            ),
+                &GuessResult {
+                    non_partipating: str2vec("treadbo"),
+                    misplaced: vec!(('s', 4)),
+                    correct: vec!(('i', 2), ('l', 3))
+                }
+            )
+            .len(),
             6
         );
         assert_eq!(
-            remaining_wordles(
+            remaining_wordles_words(
                 &WORDS,
-                Vec::from_iter("treadbok".chars()),
-                &vec!(('s', 4)),
-                &vec!(('i', 2), ('l', 3), ('s', 0))
-            ),
+                &GuessResult {
+                    non_partipating: str2vec("treadbok"),
+                    misplaced: vec!(('s', 4)),
+                    correct: vec!(('i', 2), ('l', 3), ('s', 0))
+                }
+            )
+            .len(),
             5
         );
     }
@@ -395,7 +368,7 @@ mod tests {
             "rupee".to_string(),
         ];
 
-        let guesses = words(
+        let guesses = last_words_mr_bond(
             &word_list,
             &"rupee".to_string(),
             vec!["peers".to_string()],
@@ -404,33 +377,7 @@ mod tests {
         assert!(guesses.len() == 1);
         // The guess `peers` reveals that index 1,2 cannot be e.
         // This rules out `queue` leaving just rupee
-        assert_slices_equal(&guesses.get(0).unwrap(), &vec!["rupee".to_string()]);
-    }
-
-    #[test]
-    fn cheats_lul() {
-        let r = remaining_wordles_words(
-            &WORDS,
-            Vec::from_iter("teadbils".chars()),
-            &vec![('r', 1), ('u', 1), ('m', 2)],
-            &vec![('o', 1)],
-        );
-        println!("{:?}", r);
-        println!("{:?}", r.len());
-
-        assert!(true);
-
-        let a = words(
-            &WORDS,
-            "other",
-            vec![
-                "tread".to_string(),
-                "boils".to_string(),
-                "humpy".to_string(),
-            ],
-            5,
-        );
-        println!("{:?}", a);
+        assert_slices_equal(&guesses, &vec!["rupee".to_string()]);
     }
 
     fn assert_slices_equal<T: Eq + Hash + Debug>(a: &[T], b: &[T]) {
@@ -448,5 +395,9 @@ mod tests {
                 b
             );
         }
+    }
+
+    fn str2vec(str: &str) -> Vec<char> {
+        Vec::from_iter(str.chars())
     }
 }
