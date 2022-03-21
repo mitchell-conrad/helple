@@ -66,7 +66,7 @@ pub fn remaining_wordles_words(
         .filter(|word| contains_all(word, &misplaced_positions_chars))
         .filter(|word| !contains_at_any(word, misplaced_positions))
         .filter(|word| contains_at_all(word, correct_positions))
-        .map(|word| word.clone())
+        .cloned()
         .collect()
 }
 
