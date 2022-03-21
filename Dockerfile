@@ -35,6 +35,11 @@ RUN mix local.hex --force && \
 # set build ENV
 ENV MIX_ENV="prod"
 
+# Whilst https://github.com/superfly/flyctl/issues/560 is broken, we have to
+# bake in the GIT_SHORT_SHA via a build-arg.
+ARG GIT_SHORT_SHA="dev-build"
+ENV GIT_SHORT_SHA=$GIT_SHORT_SHA
+
 # install mix dependencies
 COPY mix.exs mix.lock ./
 RUN mix deps.get --only $MIX_ENV
