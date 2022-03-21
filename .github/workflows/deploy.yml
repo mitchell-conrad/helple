@@ -17,6 +17,8 @@ jobs:
           id: vars
           run: echo "::set-output name=GIT_SHORT_SHA::$(git rev-parse --short $GITHUB_SHA)"
         - uses: superfly/flyctl-actions@1.3
+          env:
+            GIT_SHORT_SHA: ${{ steps.vars.outputs.GIT_SHORT_SHA }}
           with:
             GIT_SHORT_SHA: ${{ steps.vars.outputs.GIT_SHORT_SHA }}
             args: "deploy --build-arg GIT_SHORT_SHA=${GIT_SHORT_SHA}"
