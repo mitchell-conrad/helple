@@ -8,7 +8,7 @@ name: Build, Test and Lint
 
 jobs:
   test:
-    name: cargo test
+    name: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,12 +17,18 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: '24'
+          elixir-version: '1.13.2'
+      - run: mix deps.get
+      - run: mix test
       - uses: actions-rs/cargo@v1
         with:
           command: test
           args: --manifest-path native/rustsolver/Cargo.toml
   fmt:
-    name: cargo fmt --check
+    name: format check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -36,6 +42,12 @@ jobs:
         with:
           command: fmt
           args: --check --manifest-path native/rustsolver/Cargo.toml
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: '24'
+          elixir-version: '1.13.2'
+      - run: mix deps.get
+      - run: mix format --check-formatted
   clippy:
     name: cargo clippy
     runs-on: ubuntu-latest
