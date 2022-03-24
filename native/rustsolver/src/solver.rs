@@ -1,4 +1,5 @@
 use rand::{prelude::SliceRandom, thread_rng};
+use std::collections::HashMap;
 use std::iter::zip;
 use std::ops::{Add, AddAssign};
 
@@ -7,14 +8,14 @@ type PosVec = Vec<PosTuple>;
 type PosSlice<'a> = &'a [PosTuple];
 
 struct GuessResult {
-    non_partipating: Vec<char>,
+    max_participating: HashMap<char, usize>,
     misplaced: PosVec,
     correct: PosVec,
 }
 
 impl AddAssign for GuessResult {
     fn add_assign(&mut self, other: Self) {
-        self.non_partipating.extend(other.non_partipating);
+        self.max_participating.extend(other.max_participating);
         self.misplaced.extend(other.misplaced);
         self.correct.extend(other.correct);
     }
@@ -26,10 +27,6 @@ impl Add for GuessResult {
         guess += rhs;
         guess
     }
-}
-
-fn contains_any(word: &str, chars: &[char]) -> bool {
-    chars.iter().any(|c| word.contains(*c))
 }
 
 fn contains_all(word: &str, chars: &[char]) -> bool {
@@ -49,6 +46,32 @@ fn contains_at_all(word: &str, pos: PosSlice) -> bool {
         .all(|b| b)
 }
 
+fn get_letter_counts(word: &str) -> HashMap<char, usize> {
+    let mut counts: HashMap<char, usize> = HashMap::new();
+
+    for c in word.chars() {
+        *counts.entry(c).or_insert(0) += 1;
+    }
+    counts
+}
+
+fn contains_no_more_than(word: &str, max_counts: &HashMap<char, usize>) -> bool {
+    let word_counts = get_letter_counts(word);
+
+    !max_counts.iter().any(|(c, max_count)| {
+        // Check to see if the word has more than the max number of each letter
+        let word_count_opt = word_counts.get(c);
+
+        if let Some(word_count) = word_count_opt {
+            // Check if the word contains more than allowed max of the char
+            word_count > max_count
+        } else {
+            // If the word doesn't contain the letter at all, we're okay.
+            false
+        }
+    })
+}
+
 fn contains_at_any(word: &str, pos: PosSlice) -> bool {
     pos.iter()
         .map(|(val, pos)| contains_at(word, *val, *pos))
@@ -60,7 +83,7 @@ fn remaining_wordles_words(word_list: &[String], t: &GuessResult) -> Vec<String>
 
     word_list
         .iter()
-        .filter(|word| !contains_any(word, &t.non_partipating))
+        .filter(|word| contains_no_more_than(word, &t.max_participating))
         .filter(|word| contains_all(word, &misplaced_positions_chars))
         .filter(|word| !contains_at_any(word, &t.misplaced))
         .filter(|word| contains_at_all(word, &t.correct))
@@ -68,10 +91,28 @@ fn remaining_wordles_words(word_list: &[String], t: &GuessResult) -> Vec<String>
         .collect()
 }
 
-fn get_non_participating_chars(solution: &str, guess: &str) -> Vec<char> {
-    // For the provided solution and guess: Returns all the characters contained
-    // in guess which do not occur in solution.
-    guess.chars().filter(|c| !solution.contains(*c)).collect()
+fn get_max_char_counts(solution: &str, guess: &str) -> HashMap<char, usize> {
+    // If the guess has more instances of a character than the solution has, we
+    // can prune any word which has more instances of the character than the
+    // solution. This function produces a map which contains this list.
+
+    let solution_counts = get_letter_counts(solution);
+    let guess_counts = get_letter_counts(guess);
+
+    let mut char_counts: HashMap<char, usize> = HashMap::new();
+
+    for (c, guess_count) in guess_counts.iter() {
+        let solution_count_opt = solution_counts.get(c);
+
+        if let Some(solution_count) = solution_count_opt {
+            if *guess_count > *solution_count {
+                char_counts.insert(*c, *solution_count);
+            }
+        } else {
+            char_counts.insert(*c, 0);
+        }
+    }
+    char_counts
 }
 
 fn get_correct_chars(solution: &str, guess: &str) -> PosVec {
@@ -106,7 +147,7 @@ fn get_misplaced_chars(solution: &str, guess: &str) -> PosVec {
 
 fn get_all(solution: &str, guess: &str) -> GuessResult {
     GuessResult {
-        non_partipating: get_non_participating_chars(solution, guess),
+        max_participating: get_max_char_counts(solution, guess),
         misplaced: get_misplaced_chars(solution, guess),
         correct: get_correct_chars(solution, guess),
     }
@@ -124,13 +165,12 @@ pub fn last_words_mr_bond(
         .map(|guess| get_all(&solution.to_lowercase(), &guess.to_lowercase()))
         .fold(
             GuessResult {
-                non_partipating: vec![],
+                max_participating: HashMap::new(),
                 misplaced: vec![],
                 correct: vec![],
             },
             |a, b| a + b,
         );
-
     remaining_wordles_words(word_list, &guess_result)
         .choose_multiple(&mut thread_rng(), sample_size)
         .cloned()
@@ -214,9 +254,47 @@ mod tests {
     }
 
     #[test]
-    fn test_contains_any() {
-        assert!(!contains_any("eeuib", &str2vec("asdf")));
-        assert!(contains_any("eeaib", &str2vec("asdf")));
+    fn test_contains_no_more_than() {
+        // eerie contains no more than 3 e
+        assert!(contains_no_more_than("eerie", &HashMap::from([('e', 3)])));
+        // eerie contains no more than 2 r
+        assert!(contains_no_more_than("eerie", &HashMap::from([('r', 2)])));
+        // eerie contains no more than 1 q
+        assert!(contains_no_more_than("eerie", &HashMap::from([('q', 1)])));
+        // eerie contains more than 2 e
+        assert!(!contains_no_more_than("eerie", &HashMap::from([('e', 2)])));
+        // eerie contains more than 1 e
+        assert!(!contains_no_more_than("eerie", &HashMap::from([('e', 1)])));
+        // eerie contains more than 0 r
+        assert!(!contains_no_more_than("eerie", &HashMap::from([('r', 0)])));
+    }
+
+    #[test]
+    fn test_get_max_char_counts() {
+        // The guess doesn't reveal more e's than the solution, so we can't
+        // infer a max count
+        assert_eq!(get_max_char_counts("eerie", "e"), HashMap::from([]));
+        // The guess still doesn't reveal more e's than the solution, so we
+        // can't infer a max count
+        assert_eq!(get_max_char_counts("eerie", "ee"), HashMap::from([]));
+
+        // The guess still doesn't reveal more e's than the solution, so we
+        // can't infer a max count
+        assert_eq!(get_max_char_counts("eerie", "eee"), HashMap::from([]));
+
+        // The guess reveals more e's than the solution, so we can infer that
+        // there is at most 3 e's
+        assert_eq!(
+            get_max_char_counts("eerie", "eeee"),
+            HashMap::from([('e', 3)])
+        );
+
+        // The guess reveals more e's than the solution, so we can infer that
+        // there is at most 3 e's.
+        assert_eq!(
+            get_max_char_counts("poops", "pppooos"),
+            HashMap::from([('p', 2), ('o', 2)])
+        );
     }
 
     #[test]
@@ -264,7 +342,7 @@ mod tests {
             remaining_wordles_words(
                 &WORDS,
                 &GuessResult {
-                    non_partipating: str2vec("tread"),
+                    max_participating: non_participating_count("tread"),
                     misplaced: vec!(),
                     correct: vec!()
                 }
@@ -276,7 +354,7 @@ mod tests {
             remaining_wordles_words(
                 &WORDS,
                 &GuessResult {
-                    non_partipating: str2vec("treadbo"),
+                    max_participating: non_participating_count("treadbo"),
                     misplaced: vec!(('s', 4)),
                     correct: vec!(('i', 2), ('l', 3))
                 }
@@ -288,19 +366,24 @@ mod tests {
             remaining_wordles_words(
                 &WORDS,
                 &GuessResult {
-                    non_partipating: str2vec("treadbok"),
+                    max_participating: non_participating_count("treadbok"),
                     misplaced: vec!(('s', 4)),
                     correct: vec!(('i', 2), ('l', 3), ('s', 0))
                 }
             )
             .len(),
             5
-        );
+        )
     }
 
     #[test]
-    fn test_get_non_participating_chars() {
-        assert_eq!(get_non_participating_chars("asdf", "abcd"), vec!('b', 'c'));
+    fn test_last_words_mr_bond() {
+        let v: Vec<String> = vec!["purge".to_string(), "puree".to_string()];
+
+        assert_eq!(
+            last_words_mr_bond(&v, "purge", vec!("pence".to_string()), 5),
+            vec!("purge")
+        );
     }
 
     #[test]
@@ -399,5 +482,14 @@ mod tests {
 
     fn str2vec(str: &str) -> Vec<char> {
         Vec::from_iter(str.chars())
+    }
+
+    fn non_participating_count(str: &str) -> HashMap<char, usize> {
+        let mut counts: HashMap<char, usize> = HashMap::new();
+
+        for c in str.chars() {
+            counts.insert(c, 0);
+        }
+        counts
     }
 }
